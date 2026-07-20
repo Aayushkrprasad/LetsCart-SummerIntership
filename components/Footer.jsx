@@ -32,8 +32,8 @@ const Footer = () => {
         {
             title: "CONTACT",
             links: [
-                { text: "+91 70030-35426 ", path: '/', icon: MailIcon },
-                { text: "aayushkrprasad@gmail.com", path: '/', icon: PhoneIcon },
+                { text: "aayushkrprasad@gmail.com", path: '/', icon: MailIcon },
+                { text: "+91 70030-35426 ", path: '/', icon: PhoneIcon },
                 { text: "Assam DownTown University  , 781026 ", path: '/', icon: MapPinIcon }
             ]
         }
