@@ -1,0 +1,104 @@
+@import "tailwindcss";
+
+@layer components {
+    @keyframes marqueeScroll {
+        0% {
+            transform: translateX(0%);
+        }
+        100% {
+            transform: translateX(-50%);
+        }
+    }
+
+    @keyframes floatSlow {
+        0%, 100% {
+            transform: translateY(0px) scale(1);
+        }
+        50% {
+            transform: translateY(-20px) scale(1.08);
+        }
+    }
+
+    @keyframes floatReverse {
+        0%, 100% {
+            transform: translateY(0px) scale(1);
+        }
+        50% {
+            transform: translateY(20px) scale(0.95);
+        }
+    }
+
+    @keyframes cardPop {
+        0% {
+            opacity: 0;
+            transform: translateY(16px) scale(0.97);
+        }
+        100% {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+        }
+    }
+
+    @keyframes fieldFade {
+        0% {
+            opacity: 0;
+            transform: translateY(6px);
+        }
+        100% {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    @keyframes rotateOrbit {
+        from {
+            transform: rotate(0deg);
+        }
+        to {
+            transform: rotate(360deg);
+        }
+    }
+
+    @keyframes counterRotate {
+        from {
+            transform: rotate(0deg);
+        }
+        to {
+            transform: rotate(-360deg);
+        }
+    }
+
+    .animate-rotate-orbit {
+        animation: rotateOrbit 28s linear infinite;
+    }
+
+    .animate-counter-rotate {
+        animation: counterRotate 28s linear infinite;
+    }
+
+    .animate-float-slow {
+        animation: floatSlow 8s ease-in-out infinite;
+    }
+
+    .animate-float-reverse {
+        animation: floatReverse 10s ease-in-out infinite;
+    }
+
+    .animate-card-pop {
+        animation: cardPop 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+
+    .animate-field-fade {
+        animation: fieldFade 0.3s ease-out forwards;
+    }
+}
+
+@layer base {
+    button {
+        cursor: pointer;
+    }
+}
+
+.no-scrollbar::-webkit-scrollbar {
+    display: none;
+}
