@@ -24,7 +24,7 @@ const HeroSlide = ({ slide }) => {
             />
           </div>
 
-          <h2 className="text-3xl sm:text-5xl leading-[1.2] my-4 font-medium">
+          <h2 className="text-3xl sm:text-5xl leading-[1.2] my-4 font-medium text-slate-800">
             {slide.title}
             <br />
             <span className="text-green-500">

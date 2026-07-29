@@ -208,7 +208,7 @@ function ShopContent() {
                     {/* RIGHT COLUMN: 3 or 4 Column Product Grid */}
                     <main className="flex-1 w-full">
                         {filteredProducts.length > 0 ? (
-                            <div className="grid grid-cols-2 sm:flex flex-wrap gap-6 xl:gap-12 mx-auto mb-32">
+                            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-5 sm:gap-6 mb-24 w-full">
                                 {filteredProducts.map((product) => (
                                     <ProductCard key={product.id} product={product} />
                                 ))}

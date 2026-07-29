@@ -10,94 +10,98 @@ export async function POST(request) {
         if (authHeader && authHeader.startsWith('Bearer ')) {
             const token = authHeader.substring(7);
             try {
-                const decoded = jwt.verify(token, process.env.JWT_SECRET || 'letscart_secret');
+                const jwtSecret = process.env.JWT_SECRET || 'letscart_super_secret_jwt_key_2026';
+                const decoded = jwt.verify(token, jwtSecret);
                 userId = decoded.userId;
             } catch (err) {
-                // Token invalid or expired
+                console.warn("JWT Verification failed in create store:", err);
             }
         }
 
         const body = await request.json();
-        const { name, username, description } = body;
+        let { name, username, description } = body;
 
-        if (!name || !username) {
-            return NextResponse.json(
-                { success: false, message: 'Store name and username are required' },
-                { status: 400 }
-            );
-        }
-
-        // Check if username is taken
-        const existingStore = await prisma.store.findUnique({
-            where: { username: username.toLowerCase() }
-        });
-
-        if (existingStore) {
-            return NextResponse.json(
-                { success: false, message: 'Store username is already taken. Please choose another.' },
-                { status: 409 }
-            );
-        }
-
-        // Fallback user if token is missing
+        // Fallback user if token header is missing
         if (!userId) {
-            const firstSeller = await prisma.seller.findFirst();
-            if (firstSeller) {
-                userId = firstSeller.id;
-            } else {
-                const firstUser = await prisma.user.findFirst();
-                if (firstUser) userId = firstUser.id;
-            }
+            const { searchParams } = new URL(request.url);
+            userId = searchParams.get('userId');
+        }
+
+        if (!userId) {
+            const firstSellerUser = await prisma.user.findFirst({ where: { role: 'SELLER' } });
+            if (firstSellerUser) userId = firstSellerUser.id;
         }
 
         if (!userId) {
             return NextResponse.json(
-                { success: false, message: 'User account required to create a store. Please sign in.' },
+                { success: false, message: 'User authentication required. Please log in.' },
                 { status: 401 }
             );
         }
 
-        // Check if account exists in 'sellers' or 'users'
-        const sellerAccount = await prisma.seller.findUnique({ where: { id: userId } });
-        const userAccount = !sellerAccount ? await prisma.user.findUnique({ where: { id: userId } }) : null;
-
-        let storeData = {
-            name,
-            username: username.toLowerCase(),
-            description: description || '',
-            status: 'approved'
-        };
-
-        if (sellerAccount) {
-            storeData.sellerId = userId;
-        } else if (userAccount) {
-            storeData.ownerId = userId;
-            await prisma.user.update({
-                where: { id: userId },
-                data: { role: 'SELLER' }
-            });
-        } else {
-            return NextResponse.json(
-                { success: false, message: 'Account not found in database' },
-                { status: 404 }
-            );
+        const user = await prisma.user.findUnique({ where: { id: userId } });
+        if (!user) {
+            return NextResponse.json({ success: false, message: 'User account not found' }, { status: 404 });
         }
 
-        // Create Store in PostgreSQL Database
-        const store = await prisma.store.create({
-            data: storeData
+        // Auto-generate name/username if missing
+        if (!name) name = `${user.name}'s Store`;
+        if (!username) username = `store_${user.id.substring(0, 8)}`;
+        const cleanUsername = username.toLowerCase().trim().replace(/[^a-z0-9_]/g, '');
+
+        // Check if user already owns a store
+        const existingStoreForUser = await prisma.store.findUnique({
+            where: { ownerId: user.id }
         });
+
+        let store;
+
+        if (existingStoreForUser) {
+            // Update existing store details
+            store = await prisma.store.update({
+                where: { id: existingStoreForUser.id },
+                data: {
+                    name,
+                    description: description || existingStoreForUser.description,
+                    status: 'approved'
+                }
+            });
+        } else {
+            // Check if username is taken by another store
+            const usernameTaken = await prisma.store.findUnique({
+                where: { username: cleanUsername }
+            });
+
+            const finalUsername = usernameTaken ? `${cleanUsername}_${Date.now().toString().slice(-4)}` : cleanUsername;
+
+            // Create new Store in PostgreSQL Database
+            store = await prisma.store.create({
+                data: {
+                    name,
+                    username: finalUsername,
+                    description: description || '',
+                    ownerId: user.id,
+                    status: 'approved'
+                }
+            });
+
+            // Ensure user role is set to SELLER
+            await prisma.user.update({
+                where: { id: user.id },
+                data: { role: 'SELLER' }
+            });
+        }
 
         return NextResponse.json({
             success: true,
-            message: 'Store created successfully in database!',
+            message: 'Store saved successfully in database!',
             store
-        }, { status: 201 });
+        }, { status: 200 });
 
     } catch (error) {
         console.error('Create Store Error:', error);
         return NextResponse.json(
-            { success: false, message: 'Failed to create store', error: error.message },
+            { success: false, message: 'Failed to create or update store', error: error.message },
             { status: 500 }
         );
     }

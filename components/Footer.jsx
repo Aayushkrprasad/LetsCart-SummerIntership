@@ -47,17 +47,17 @@ const Footer = () => {
     ]
 
     return (
-        <footer className="mx-6 bg-white">
+        <footer className="mx-6 bg-white dark:bg-slate-950 transition-colors duration-300">
             <div className="max-w-7xl mx-auto">
-                <div className="flex flex-col md:flex-row items-start justify-between gap-10 py-10 border-b border-slate-500/30 text-slate-500">
+                <div className="flex flex-col md:flex-row items-start justify-between gap-10 py-10 border-b border-slate-200 dark:border-slate-800/80 text-slate-500 dark:text-slate-400">
                     <div>
-                        <Link href="/" className="text-4xl font-semibold text-slate-700">
+                        <Link href="/" className="text-4xl font-semibold text-slate-700 dark:text-slate-200">
                             <span className="text-green-600">Lets</span>Cart<span className="text-green-600 text-5xl leading-0">.</span>
                         </Link>
                         <p className="max-w-[410px] mt-6 text-sm">Welcome to LetsCart, your ultimate destination for the latest and smartest gadgets. From smartphones and smartwatches to essential accessories, we bring you the best in innovation — all in one place.</p>
                         <div className="flex items-center gap-3 mt-5">
                             {socialIcons.map((item, i) => (
-                                <Link href={item.link} key={i} className="flex items-center justify-center w-10 h-10 bg-slate-100 hover:scale-105 hover:border border-slate-300 transition rounded-full">
+                                <Link href={item.link} key={i} className="flex items-center justify-center w-10 h-10 bg-slate-100 dark:bg-slate-900 border border-transparent dark:border-slate-800 hover:scale-105 hover:border-slate-300 dark:hover:border-slate-700 transition rounded-full text-slate-500 dark:text-slate-400">
                                     <item.icon />
                                 </Link>
                             ))}
@@ -66,12 +66,12 @@ const Footer = () => {
                     <div className="flex flex-wrap justify-between w-full md:w-[45%] gap-5 text-sm ">
                         {linkSections.map((section, index) => (
                             <div key={index}>
-                                <h3 className="font-medium text-slate-700 md:mb-5 mb-3">{section.title}</h3>
+                                <h3 className="font-medium text-slate-700 dark:text-slate-200 md:mb-5 mb-3">{section.title}</h3>
                                 <ul className="space-y-2.5">
                                     {section.links.map((link, i) => (
                                         <li key={i} className="flex items-center gap-2">
                                             {link.icon && <link.icon />}
-                                            <Link href={link.path} className="hover:underline transition">{link.text}</Link>
+                                            <Link href={link.path} className="hover:underline transition hover:text-green-600 dark:hover:text-green-400">{link.text}</Link>
                                         </li>
                                     ))}
                                 </ul>
@@ -79,7 +79,7 @@ const Footer = () => {
                         ))}
                     </div>
                 </div>
-                <p className="py-4 text-sm text-slate-500">
+                <p className="py-4 text-sm text-slate-500 dark:text-slate-400">
                     Copyright 2026 © LetsCart All Right Reserved.
                 </p>
             </div>

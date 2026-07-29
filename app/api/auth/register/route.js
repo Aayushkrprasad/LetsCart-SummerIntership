@@ -16,50 +16,99 @@ export async function POST(request) {
             );
         }
 
-        // Check if user already exists
-        const existingUser = await prisma.user.findUnique({
-            where: { email: email.toLowerCase() }
+        const normalizedEmail = email.toLowerCase().trim();
+        
+        let userRole = 'BUYER';
+        if (role === 'SELLER') userRole = 'SELLER';
+        else if (role === 'DELIVERY') userRole = 'DELIVERY';
+        else if (role === 'ADMIN') userRole = 'ADMIN';
+
+        // Check if an account with this exact EMAIL and ROLE already exists
+        const existingUser = await prisma.user.findFirst({
+            where: { 
+                email: normalizedEmail,
+                role: userRole
+            }
         });
 
         if (existingUser) {
+            let roleTitle = 'Customer';
+            if (userRole === 'SELLER') roleTitle = 'Store Owner';
+            if (userRole === 'DELIVERY') roleTitle = 'Delivery Partner';
+            if (userRole === 'ADMIN') roleTitle = 'Admin';
+
             return NextResponse.json(
-                { success: false, message: 'An account with this email already exists' },
+                { 
+                    success: false, 
+                    message: `A ${roleTitle} account with this email already exists. Please sign in with your ${roleTitle} credentials.` 
+                },
                 { status: 409 }
             );
         }
 
-        // Hash Password
+        // Hash Password for new separate account
         const hashedPassword = await bcrypt.hash(password, 10);
 
-        // Create User in PostgreSQL Database
+        // Create separate User in PostgreSQL Database for this role
         const newUser = await prisma.user.create({
             data: {
-                name: name || email.split('@')[0],
-                email: email.toLowerCase(),
+                name: name || normalizedEmail.split('@')[0],
+                email: normalizedEmail,
                 password: hashedPassword,
-                role: role === 'SELLER' ? 'SELLER' : 'BUYER'
+                role: userRole
             },
             select: {
                 id: true,
                 name: true,
                 email: true,
                 role: true,
+                avatar: true,
                 createdAt: true
             }
         });
 
-        // Generate JWT Token
-        const jwtSecret = process.env.JWT_SECRET || 'letscart_secret';
+        // If creating a SELLER account, provision a dedicated Store Hub for them
+        if (userRole === 'SELLER') {
+            await prisma.store.create({
+                data: {
+                    name: `${newUser.name}'s Store`,
+                    username: `store_${newUser.id.substring(0, 8)}`,
+                    description: 'Official LetsCart Partner Store',
+                    ownerId: newUser.id,
+                    status: 'approved'
+                }
+            });
+        }
+
+        // Check all accounts under this email to set multi-role flag
+        const allAccounts = await prisma.user.findMany({
+            where: { email: normalizedEmail },
+            select: { role: true }
+        });
+
+        const safeUser = {
+            ...newUser,
+            hasMultipleRoles: allAccounts.length > 1,
+            availableRoles: allAccounts.map(a => a.role)
+        };
+
+        // Generate JWT Token for this role
+        const jwtSecret = process.env.JWT_SECRET || 'letscart_super_secret_jwt_key_2026';
         const token = jwt.sign(
             { userId: newUser.id, email: newUser.email, role: newUser.role },
             jwtSecret,
             { expiresIn: '30d' }
         );
 
+        let welcomeMsg = 'Customer account created successfully!';
+        if (userRole === 'SELLER') welcomeMsg = 'Store Owner account created! Welcome to Seller Hub.';
+        if (userRole === 'DELIVERY') welcomeMsg = 'Delivery Partner account created! Welcome to LetsCart Logistics.';
+        if (userRole === 'ADMIN') welcomeMsg = 'Master Admin account created!';
+
         return NextResponse.json({
             success: true,
-            message: 'Account created successfully in database!',
-            user: newUser,
+            message: welcomeMsg,
+            user: safeUser,
             token
         }, { status: 201 });
 

@@ -42,54 +42,90 @@ export default function CartAIAssistant() {
         if (!textToSend) setInput('');
         setIsTyping(true);
 
-        // Process query and respond
-        setTimeout(() => {
-            let replyText = '';
-            let matchedProducts = [];
-            const lower = queryText.toLowerCase();
-
-            if (lower.includes('order') || lower.includes('track') || lower.includes('status')) {
-                replyText = 'You can check your active and past orders anytime in your Account Profile page or the Orders section!';
-            } else if (lower.includes('budget') || lower.includes('cheap') || lower.includes('under') || lower.includes('low price')) {
-                replyText = 'Here are some of our best budget-friendly products available right now:';
-                matchedProducts = [...products].sort((a, b) => a.price - b.price).slice(0, 3);
-            } else if (lower.includes('tech') || lower.includes('headphone') || lower.includes('speaker') || lower.includes('watch') || lower.includes('electronics')) {
-                replyText = 'Check out these top trending tech and electronic items in our store:';
-                matchedProducts = products.filter(p => 
-                    (p.category && p.category.toLowerCase().includes('tech')) ||
-                    p.name.toLowerCase().includes('headphone') ||
-                    p.name.toLowerCase().includes('speaker') ||
-                    p.name.toLowerCase().includes('watch') ||
-                    p.name.toLowerCase().includes('lamp')
-                ).slice(0, 3);
-            } else if (lower.includes('recommend') || lower.includes('cool') || lower.includes('best') || lower.includes('top')) {
-                replyText = 'Here are our top-rated customer favorites specially recommended for you:';
-                matchedProducts = [...products].slice(0, 3);
-            } else {
-                // Search products by name or category match
-                const matches = products.filter(p => 
-                    p.name.toLowerCase().includes(lower) || 
-                    (p.category && p.category.toLowerCase().includes(lower))
-                );
-                if (matches.length > 0) {
-                    replyText = `I found ${matches.length} products matching "${queryText}":`;
-                    matchedProducts = matches.slice(0, 3);
-                } else {
-                    replyText = `I couldn't find exact matches for "${queryText}", but check out these popular picks from our store catalog:`;
-                    matchedProducts = products.slice(0, 3);
-                }
+        // Fetch AI response from the Gemini API route
+        fetch('/api/ai/chat', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                message: queryText,
+                history: [...messages, userMsg],
+                products: products
+            })
+        })
+        .then(res => res.json())
+        .then(data => {
+            // Find recommended products by matching their IDs
+            const matchedProducts = [];
+            if (data.recommendedProductIds && Array.isArray(data.recommendedProductIds)) {
+                data.recommendedProductIds.forEach(id => {
+                    const found = products.find(p => String(p.id) === String(id));
+                    if (found) matchedProducts.push(found);
+                });
             }
 
             const aiMsg = {
                 id: `msg-${Date.now() + 1}`,
                 sender: 'ai',
-                text: replyText,
+                text: data.text || "Sorry, I didn't get a response. Please try again.",
                 suggestedProducts: matchedProducts
             };
 
             setMessages(prev => [...prev, aiMsg]);
             setIsTyping(false);
-        }, 700);
+        })
+        .catch(err => {
+            console.error("AI assistant endpoint error:", err);
+            const errorMsg = {
+                id: `msg-${Date.now() + 1}`,
+                sender: 'ai',
+                text: "⚠️ **Connection Error**\n\nCould not reach the server. Please check that `npm run dev` is running."
+            };
+            setMessages(prev => [...prev, errorMsg]);
+            setIsTyping(false);
+        });
+    };
+
+    // Helper function to render basic markdown elements inside messages
+    const renderMessageText = (text) => {
+        if (!text) return null;
+        
+        const lines = text.split('\n');
+        return lines.map((line, idx) => {
+            let content = line;
+            
+            // Check if line is a bullet list item
+            const isBullet = line.trim().startsWith('- ') || line.trim().startsWith('* ');
+            if (isBullet) {
+                content = line.replace(/^[\-\*]\s+/, '');
+            }
+
+            // Regex for bold text (**bold**)
+            const parts = content.split(/(\*\*.*?\*\*)/g);
+            const elements = parts.map((part, pIdx) => {
+                if (part.startsWith('**') && part.endsWith('**')) {
+                    return (
+                        <strong key={pIdx} className="font-bold text-slate-900 dark:text-slate-100">
+                            {part.slice(2, -2)}
+                        </strong>
+                    );
+                }
+                return part;
+            });
+
+            if (isBullet) {
+                return (
+                    <li key={idx} className="ml-4 list-disc mt-1 text-slate-700 dark:text-slate-300">
+                        {elements}
+                    </li>
+                );
+            }
+
+            return (
+                <p key={idx} className={`${idx > 0 ? 'mt-2' : ''} text-slate-700 dark:text-slate-300`}>
+                    {elements}
+                </p>
+            );
+        });
     };
 
     return (
@@ -113,7 +149,7 @@ export default function CartAIAssistant() {
 
             {/* Chat Drawer Window */}
             {isOpen && (
-                <div className="w-[360px] sm:w-[400px] h-[520px] bg-white/95 backdrop-blur-2xl border border-slate-200/90 rounded-3xl shadow-2xl flex flex-col overflow-hidden animate-card-pop">
+                <div className="w-[360px] sm:w-[400px] h-[520px] bg-white/95 dark:bg-slate-950/95 backdrop-blur-2xl border border-slate-200/90 dark:border-slate-800 rounded-3xl shadow-2xl flex flex-col overflow-hidden animate-card-pop">
                     
                     {/* Header */}
                     <div className="bg-gradient-to-r from-emerald-700 via-green-600 to-teal-700 p-4 text-white flex items-center justify-between shadow-md">
@@ -138,22 +174,22 @@ export default function CartAIAssistant() {
                     </div>
 
                     {/* Quick Suggestion Chips */}
-                    <div className="p-2.5 bg-slate-50 border-b border-slate-100 flex items-center gap-2 overflow-x-auto text-[11px] no-scrollbar">
+                    <div className="p-2.5 bg-slate-50 dark:bg-slate-900/50 border-b border-slate-100 dark:border-slate-900 flex items-center gap-2 overflow-x-auto text-[11px] no-scrollbar">
                         <button
                             onClick={() => handleSend("Recommend top deals")}
-                            className="flex-none px-3 py-1 bg-white hover:bg-emerald-50 hover:text-emerald-700 text-slate-600 border border-slate-200 rounded-full transition font-medium flex items-center gap-1 cursor-pointer"
+                            className="flex-none px-3 py-1 bg-white dark:bg-slate-950 hover:bg-emerald-50 dark:hover:bg-emerald-950/30 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-800 rounded-full transition font-medium flex items-center gap-1 cursor-pointer"
                         >
                             <Zap size={12} className="text-yellow-500" /> Top Deals
                         </button>
                         <button
-                            onClick={() => handleSend("Budget items under ₹500")}
-                            className="flex-none px-3 py-1 bg-white hover:bg-emerald-50 hover:text-emerald-700 text-slate-600 border border-slate-200 rounded-full transition font-medium flex items-center gap-1 cursor-pointer"
+                            onClick={() => handleSend("Budget items under ₹1000")}
+                            className="flex-none px-3 py-1 bg-white dark:bg-slate-950 hover:bg-emerald-50 dark:hover:bg-emerald-950/30 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-800 rounded-full transition font-medium flex items-center gap-1 cursor-pointer"
                         >
                             💰 Budget Picks
                         </button>
                         <button
                             onClick={() => handleSend("Track my order")}
-                            className="flex-none px-3 py-1 bg-white hover:bg-emerald-50 hover:text-emerald-700 text-slate-600 border border-slate-200 rounded-full transition font-medium flex items-center gap-1 cursor-pointer"
+                            className="flex-none px-3 py-1 bg-white dark:bg-slate-950 hover:bg-emerald-50 dark:hover:bg-emerald-950/30 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-800 rounded-full transition font-medium flex items-center gap-1 cursor-pointer"
                         >
                             📦 Track Orders
                         </button>
@@ -167,18 +203,18 @@ export default function CartAIAssistant() {
                                 className={`flex gap-2.5 ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}
                             >
                                 {msg.sender === 'ai' && (
-                                    <div className="w-7 h-7 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center flex-shrink-0 mt-0.5">
+                                    <div className="w-7 h-7 rounded-full bg-emerald-100 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-400 flex items-center justify-center flex-shrink-0 mt-0.5">
                                         <Bot size={15} />
                                     </div>
                                 )}
 
-                                <div className={`max-w-[82%] space-y-2`}>
+                                <div className="max-w-[82%] space-y-2">
                                     <div className={`p-3 rounded-2xl leading-relaxed ${
                                         msg.sender === 'user'
                                             ? 'bg-emerald-600 text-white rounded-br-none shadow-sm font-medium'
-                                            : 'bg-slate-100 text-slate-800 rounded-bl-none border border-slate-200/80'
+                                            : 'bg-slate-100 dark:bg-slate-900/90 text-slate-800 dark:text-slate-200 rounded-bl-none border border-slate-200/80 dark:border-slate-800/80'
                                     }`}>
-                                        {msg.text}
+                                        {msg.sender === 'user' ? msg.text : renderMessageText(msg.text)}
                                     </div>
 
                                     {/* Embedded Product Cards in AI Reply */}
@@ -187,22 +223,22 @@ export default function CartAIAssistant() {
                                             {msg.suggestedProducts.map(prod => (
                                                 <Link
                                                     key={prod.id}
-                                                    href={`/product/${prod.id}`}
+                                                    href={`/product/${typeof prod.id === 'object' ? (prod.id.id || prod.id._id || String(prod.id)) : prod.id}`}
                                                     onClick={() => setIsOpen(false)}
-                                                    className="flex items-center gap-3 p-2 bg-white border border-slate-200 hover:border-emerald-500 rounded-xl transition shadow-xs group"
+                                                    className="flex items-center gap-3 p-2 bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 hover:border-emerald-500 dark:hover:border-emerald-500 rounded-xl transition shadow-xs group"
                                                 >
-                                                    <div className="w-10 h-10 bg-slate-50 rounded-lg flex items-center justify-center overflow-hidden flex-shrink-0">
+                                                    <div className="w-10 h-10 bg-slate-50 dark:bg-slate-900 rounded-lg flex items-center justify-center overflow-hidden flex-shrink-0">
                                                         {prod.images && prod.images[0] ? (
                                                             <img src={prod.images[0]} alt={prod.name} className="w-full h-full object-cover" />
                                                         ) : (
-                                                            <ShoppingBag size={18} className="text-slate-400" />
+                                                            <ShoppingBag size={18} className="text-slate-400 dark:text-slate-600" />
                                                         )}
                                                     </div>
                                                     <div className="flex-1 min-w-0">
-                                                        <p className="font-bold text-slate-800 truncate text-[11px] group-hover:text-emerald-600 transition">{prod.name}</p>
-                                                        <p className="text-[10px] text-emerald-700 font-bold">₹{prod.price}</p>
+                                                        <p className="font-bold text-slate-800 dark:text-slate-200 truncate text-[11px] group-hover:text-emerald-600 transition">{prod.name}</p>
+                                                        <p className="text-[10px] text-emerald-700 dark:text-emerald-400 font-bold">₹{prod.price}</p>
                                                     </div>
-                                                    <ArrowRight size={14} className="text-slate-400 group-hover:translate-x-0.5 transition" />
+                                                    <ArrowRight size={14} className="text-slate-400 dark:text-slate-600 group-hover:translate-x-0.5 transition" />
                                                 </Link>
                                             ))}
                                         </div>
@@ -210,7 +246,7 @@ export default function CartAIAssistant() {
                                 </div>
 
                                 {msg.sender === 'user' && (
-                                    <div className="w-7 h-7 rounded-full bg-slate-200 text-slate-600 flex items-center justify-center flex-shrink-0 mt-0.5 font-bold text-[10px]">
+                                    <div className="w-7 h-7 rounded-full bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-400 flex items-center justify-center flex-shrink-0 mt-0.5 font-bold text-[10px]">
                                         YOU
                                     </div>
                                 )}
@@ -218,8 +254,8 @@ export default function CartAIAssistant() {
                         ))}
 
                         {isTyping && (
-                            <div className="flex items-center gap-2 text-slate-400 text-xs pl-2">
-                                <Bot size={16} className="text-emerald-600 animate-spin" />
+                            <div className="flex items-center gap-2 text-slate-400 dark:text-slate-500 text-xs pl-2">
+                                <Bot size={16} className="text-emerald-600 dark:text-emerald-500 animate-spin" />
                                 <span>CartAI is thinking...</span>
                             </div>
                         )}
@@ -230,14 +266,14 @@ export default function CartAIAssistant() {
                     {/* Input Footer */}
                     <form
                         onSubmit={(e) => { e.preventDefault(); handleSend(); }}
-                        className="p-3 bg-white border-t border-slate-100 flex items-center gap-2"
+                        className="p-3 bg-white dark:bg-slate-950 border-t border-slate-100 dark:border-slate-900 flex items-center gap-2"
                     >
                         <input
                             type="text"
                             value={input}
                             onChange={(e) => setInput(e.target.value)}
                             placeholder="Ask for products, deals, or help..."
-                            className="flex-1 px-3.5 py-2.5 bg-slate-100 border border-slate-200 rounded-xl text-xs text-slate-800 outline-none focus:border-emerald-500 focus:bg-white transition"
+                            className="flex-1 px-3.5 py-2.5 bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl text-xs text-slate-800 dark:text-slate-200 outline-none focus:border-emerald-500 dark:focus:border-emerald-500 focus:bg-white dark:focus:bg-slate-900 transition"
                         />
                         <button
                             type="submit"

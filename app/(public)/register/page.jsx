@@ -2,16 +2,17 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Mail, Lock, User, Eye, EyeOff, ArrowRight, ShoppingBag, Sparkles, Store } from 'lucide-react';
+import { Mail, Lock, User, Eye, EyeOff, ArrowRight, ShoppingBag, Sparkles, Store, Truck, ShieldCheck, X } from 'lucide-react';
 import toast from 'react-hot-toast';
 import ProductOrbitShowcase from '@/components/ProductOrbitShowcase';
 
 export default function RegisterPage() {
     const router = useRouter();
     const [mode, setMode] = useState('register'); // 'register' | 'login'
-    const [role, setRole] = useState('BUYER'); // 'BUYER' | 'SELLER'
+    const [role, setRole] = useState('BUYER'); // 'BUYER' | 'SELLER' | 'DELIVERY' | 'ADMIN'
     const [showPassword, setShowPassword] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [roleModalRoles, setRoleModalRoles] = useState(null); // array of roles if multi-account match
     const [formData, setFormData] = useState({
         name: '',
         email: '',
@@ -28,6 +29,65 @@ export default function RegisterPage() {
         }));
     };
 
+    const handleRoleSelectSubmit = async (selectedRole) => {
+        setRoleModalRoles(null);
+        performAuth(selectedRole);
+    };
+
+    const performAuth = async (overrideRole) => {
+        setIsSubmitting(true);
+        try {
+            const endpoint = mode === 'register' ? '/api/auth/register' : '/api/auth/login';
+            const res = await fetch(endpoint, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    name: formData.name,
+                    email: formData.email,
+                    password: formData.password,
+                    role: overrideRole || role
+                })
+            });
+
+            const data = await res.json();
+            setIsSubmitting(false);
+
+            if (data.requireRoleSelection && data.availableRoles) {
+                setRoleModalRoles(data.availableRoles);
+                return;
+            }
+
+            if (data.success) {
+                toast.success(data.message || (mode === 'register' ? 'Account created in database!' : 'Welcome back!'));
+                if (data.token) {
+                    localStorage.setItem('letscart_token', data.token);
+                    localStorage.setItem('letscart_user', JSON.stringify(data.user));
+                    window.dispatchEvent(new Event('authChange'));
+                }
+                
+                // Smart auto-redirection based on user's role
+                setTimeout(() => {
+                    const r = data.user?.role;
+                    if (r === 'SELLER') {
+                        router.push('/store');
+                    } else if (r === 'DELIVERY') {
+                        router.push('/delivery');
+                    } else if (r === 'ADMIN') {
+                        router.push('/admin');
+                    } else {
+                        router.push('/');
+                    }
+                }, 800);
+            } else {
+                toast.error(data.message || 'Authentication failed');
+            }
+        } catch (err) {
+            console.error("Auth Exception:", err);
+            setIsSubmitting(false);
+            toast.error(err?.message || 'Authentication connection error');
+        }
+    }
+
     const handleSubmit = async (e) => {
         e.preventDefault();
         
@@ -42,46 +102,7 @@ export default function RegisterPage() {
             }
         }
 
-        setIsSubmitting(true);
-        try {
-            const endpoint = mode === 'register' ? '/api/auth/register' : '/api/auth/login';
-            const res = await fetch(endpoint, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    name: formData.name,
-                    email: formData.email,
-                    password: formData.password,
-                    role: role
-                })
-            });
-
-            const data = await res.json();
-            setIsSubmitting(false);
-
-            if (data.success) {
-                toast.success(data.message || (mode === 'register' ? 'Account created in database!' : 'Welcome back!'));
-                if (data.token) {
-                    localStorage.setItem('letscart_token', data.token);
-                    localStorage.setItem('letscart_user', JSON.stringify(data.user));
-                    window.dispatchEvent(new Event('authChange'));
-                }
-                
-                // Redirect based on role
-                setTimeout(() => {
-                    if (data.user?.role === 'SELLER') {
-                        router.push('/create-store');
-                    } else {
-                        router.push('/');
-                    }
-                }, 800);
-            } else {
-                toast.error(data.message || 'Authentication failed');
-            }
-        } catch (err) {
-            setIsSubmitting(false);
-            toast.error('Network error connecting to auth server');
-        }
+        performAuth();
     };
 
     return (
@@ -90,6 +111,99 @@ export default function RegisterPage() {
             <div className="absolute top-10 left-1/4 w-96 h-96 bg-green-300/30 rounded-full blur-3xl pointer-events-none animate-float-slow" />
             <div className="absolute bottom-10 right-1/4 w-96 h-96 bg-indigo-300/30 rounded-full blur-3xl pointer-events-none animate-float-reverse" />
             <div className="absolute top-1/2 left-10 w-72 h-72 bg-emerald-200/25 rounded-full blur-3xl pointer-events-none animate-pulse" />
+
+            {/* Role Chooser Modal for Same-Email Multi-Role Users */}
+            {roleModalRoles && (
+                <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md z-50 flex items-center justify-center p-4 animate-fade-in">
+                    <div className="bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 max-w-md w-full shadow-2xl relative">
+                        <button onClick={() => setRoleModalRoles(null)} className="absolute top-4 right-4 text-slate-400 hover:text-slate-600">
+                            <X size={20} />
+                        </button>
+
+                        <div className="text-center mb-6">
+                            <div className="w-12 h-12 bg-green-100 dark:bg-green-950/60 text-green-600 rounded-2xl flex items-center justify-center mx-auto mb-3">
+                                <Sparkles size={24} />
+                            </div>
+                            <h3 className="text-xl font-bold text-slate-800 dark:text-slate-100">Select Portal to Access</h3>
+                            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Multiple profiles were found for {formData.email}. Choose which dashboard to enter:</p>
+                        </div>
+
+                        <div className="space-y-3">
+                            {roleModalRoles.includes('BUYER') && (
+                                <button
+                                    onClick={() => handleRoleSelectSubmit('BUYER')}
+                                    className="w-full p-4 border border-slate-200 dark:border-slate-800 hover:border-green-500 dark:hover:border-green-500 bg-slate-50 dark:bg-slate-900 rounded-2xl flex items-center justify-between text-left transition hover:scale-[1.01] cursor-pointer group"
+                                >
+                                    <div className="flex items-center gap-3">
+                                        <div className="p-2.5 bg-green-500 text-white rounded-xl">
+                                            <ShoppingBag size={20} />
+                                        </div>
+                                        <div>
+                                            <p className="text-sm font-bold text-slate-800 dark:text-slate-100">Customer Profile</p>
+                                            <p className="text-xs text-slate-500">Shop items & view active orders</p>
+                                        </div>
+                                    </div>
+                                    <ArrowRight size={18} className="text-slate-400 group-hover:translate-x-1 transition-transform" />
+                                </button>
+                            )}
+
+                            {roleModalRoles.includes('SELLER') && (
+                                <button
+                                    onClick={() => handleRoleSelectSubmit('SELLER')}
+                                    className="w-full p-4 border border-slate-200 dark:border-slate-800 hover:border-indigo-500 dark:hover:border-indigo-500 bg-slate-50 dark:bg-slate-900 rounded-2xl flex items-center justify-between text-left transition hover:scale-[1.01] cursor-pointer group"
+                                >
+                                    <div className="flex items-center gap-3">
+                                        <div className="p-2.5 bg-indigo-600 text-white rounded-xl">
+                                            <Store size={20} />
+                                        </div>
+                                        <div>
+                                            <p className="text-sm font-bold text-slate-800 dark:text-slate-100">Seller Store Hub</p>
+                                            <p className="text-xs text-slate-500">Manage store catalog & orders</p>
+                                        </div>
+                                    </div>
+                                    <ArrowRight size={18} className="text-slate-400 group-hover:translate-x-1 transition-transform" />
+                                </button>
+                            )}
+
+                            {roleModalRoles.includes('DELIVERY') && (
+                                <button
+                                    onClick={() => handleRoleSelectSubmit('DELIVERY')}
+                                    className="w-full p-4 border border-slate-200 dark:border-slate-800 hover:border-amber-500 dark:hover:border-amber-500 bg-slate-50 dark:bg-slate-900 rounded-2xl flex items-center justify-between text-left transition hover:scale-[1.01] cursor-pointer group"
+                                >
+                                    <div className="flex items-center gap-3">
+                                        <div className="p-2.5 bg-amber-600 text-white rounded-xl">
+                                            <Truck size={20} />
+                                        </div>
+                                        <div>
+                                            <p className="text-sm font-bold text-slate-800 dark:text-slate-100">Delivery Dispatch Hub</p>
+                                            <p className="text-xs text-slate-500">Dispatch & track regional shipments</p>
+                                        </div>
+                                    </div>
+                                    <ArrowRight size={18} className="text-slate-400 group-hover:translate-x-1 transition-transform" />
+                                </button>
+                            )}
+
+                            {roleModalRoles.includes('ADMIN') && (
+                                <button
+                                    onClick={() => handleRoleSelectSubmit('ADMIN')}
+                                    className="w-full p-4 border border-slate-200 dark:border-slate-800 hover:border-purple-500 dark:hover:border-purple-500 bg-slate-50 dark:bg-slate-900 rounded-2xl flex items-center justify-between text-left transition hover:scale-[1.01] cursor-pointer group"
+                                >
+                                    <div className="flex items-center gap-3">
+                                        <div className="p-2.5 bg-purple-600 text-white rounded-xl">
+                                            <ShieldCheck size={20} />
+                                        </div>
+                                        <div>
+                                            <p className="text-sm font-bold text-slate-800 dark:text-slate-100">Master Admin Portal</p>
+                                            <p className="text-xs text-slate-500">Moderate stores & view system metrics</p>
+                                        </div>
+                                    </div>
+                                    <ArrowRight size={18} className="text-slate-400 group-hover:translate-x-1 transition-transform" />
+                                </button>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            )}
 
             <div className="max-w-6xl w-full grid grid-cols-1 lg:grid-cols-2 gap-10 items-center relative z-10 my-4">
                 
@@ -108,8 +222,8 @@ export default function RegisterPage() {
                         </Link>
                         <p className="mt-2 text-sm text-slate-500 font-medium transition-all duration-300">
                             {mode === 'register' 
-                                ? (role === 'SELLER' ? 'Set up your Store Owner account' : 'Create a Customer account to shop')
-                                : 'Welcome back! Log in to access your account'}
+                                ? (role === 'SELLER' ? 'Set up your Store Owner account' : role === 'DELIVERY' ? 'Join as a Delivery Partner' : role === 'ADMIN' ? 'Create a Master Admin account' : 'Create a Customer account to shop')
+                                : 'Welcome back! Enter your credentials to sign in'}
                         </p>
                     </div>
 
@@ -151,42 +265,80 @@ export default function RegisterPage() {
                                     <label className="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1.5">
                                         Account Type
                                     </label>
-                                    <div className="grid grid-cols-2 gap-2.5">
+                                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                                         <button
                                             type="button"
                                             onClick={() => setRole('BUYER')}
-                                            className={`p-3 rounded-xl border text-left transition-all duration-200 cursor-pointer ${
+                                            className={`p-2 rounded-xl border text-left transition-all duration-200 cursor-pointer ${
                                                 role === 'BUYER'
                                                     ? 'border-green-500 bg-green-50/60 ring-2 ring-green-500/20 text-slate-900'
                                                     : 'border-slate-200 bg-slate-50/50 text-slate-500 hover:border-slate-300'
                                             }`}
                                         >
                                             <div className="flex items-center justify-between">
-                                                <ShoppingBag size={18} className={role === 'BUYER' ? 'text-green-600' : 'text-slate-400'} />
-                                                {role === 'BUYER' && <span className="w-2 h-2 rounded-full bg-green-500" />}
+                                                <ShoppingBag size={15} className={role === 'BUYER' ? 'text-green-600' : 'text-slate-400'} />
+                                                {role === 'BUYER' && <span className="w-1.5 h-1.5 rounded-full bg-green-500" />}
                                             </div>
-                                            <div className="mt-2">
-                                                <p className="text-xs font-bold text-slate-800">Customer</p>
-                                                <p className="text-[10px] text-slate-500">Shop & buy products</p>
+                                            <div className="mt-1">
+                                                <p className="text-[11px] font-bold text-slate-800">Customer</p>
+                                                <p className="text-[8px] text-slate-500">Shop & Buy</p>
                                             </div>
                                         </button>
 
                                         <button
                                             type="button"
                                             onClick={() => setRole('SELLER')}
-                                            className={`p-3 rounded-xl border text-left transition-all duration-200 cursor-pointer ${
+                                            className={`p-2 rounded-xl border text-left transition-all duration-200 cursor-pointer ${
                                                 role === 'SELLER'
-                                                    ? 'border-green-500 bg-green-50/60 ring-2 ring-green-500/20 text-slate-900'
+                                                    ? 'border-indigo-500 bg-indigo-50/60 ring-2 ring-indigo-500/20 text-slate-900'
                                                     : 'border-slate-200 bg-slate-50/50 text-slate-500 hover:border-slate-300'
                                             }`}
                                         >
                                             <div className="flex items-center justify-between">
-                                                <Store size={18} className={role === 'SELLER' ? 'text-green-600' : 'text-slate-400'} />
-                                                {role === 'SELLER' && <span className="w-2 h-2 rounded-full bg-green-500" />}
+                                                <Store size={15} className={role === 'SELLER' ? 'text-indigo-600' : 'text-slate-400'} />
+                                                {role === 'SELLER' && <span className="w-1.5 h-1.5 rounded-full bg-indigo-500" />}
                                             </div>
-                                            <div className="mt-2">
-                                                <p className="text-xs font-bold text-slate-800">Store Owner</p>
-                                                <p className="text-[10px] text-slate-500">Sell & list items</p>
+                                            <div className="mt-1">
+                                                <p className="text-[11px] font-bold text-slate-800">Seller</p>
+                                                <p className="text-[8px] text-slate-500">Sell & List</p>
+                                            </div>
+                                        </button>
+
+                                        <button
+                                            type="button"
+                                            onClick={() => setRole('DELIVERY')}
+                                            className={`p-2 rounded-xl border text-left transition-all duration-200 cursor-pointer ${
+                                                role === 'DELIVERY'
+                                                    ? 'border-amber-500 bg-amber-50/60 ring-2 ring-amber-500/20 text-slate-900'
+                                                    : 'border-slate-200 bg-slate-50/50 text-slate-500 hover:border-slate-300'
+                                            }`}
+                                        >
+                                            <div className="flex items-center justify-between">
+                                                <Truck size={15} className={role === 'DELIVERY' ? 'text-amber-600' : 'text-slate-400'} />
+                                                {role === 'DELIVERY' && <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />}
+                                            </div>
+                                            <div className="mt-1">
+                                                <p className="text-[11px] font-bold text-slate-800">Delivery</p>
+                                                <p className="text-[8px] text-slate-500">Shipments</p>
+                                            </div>
+                                        </button>
+
+                                        <button
+                                            type="button"
+                                            onClick={() => setRole('ADMIN')}
+                                            className={`p-2 rounded-xl border text-left transition-all duration-200 cursor-pointer ${
+                                                role === 'ADMIN'
+                                                    ? 'border-purple-500 bg-purple-50/60 ring-2 ring-purple-500/20 text-slate-900'
+                                                    : 'border-slate-200 bg-slate-50/50 text-slate-500 hover:border-slate-300'
+                                            }`}
+                                        >
+                                            <div className="flex items-center justify-between">
+                                                <ShieldCheck size={15} className={role === 'ADMIN' ? 'text-purple-600' : 'text-slate-400'} />
+                                                {role === 'ADMIN' && <span className="w-1.5 h-1.5 rounded-full bg-purple-500" />}
+                                            </div>
+                                            <div className="mt-1">
+                                                <p className="text-[11px] font-bold text-slate-800">Admin</p>
+                                                <p className="text-[8px] text-slate-500">Platform</p>
                                             </div>
                                         </button>
                                     </div>
@@ -336,7 +488,7 @@ export default function RegisterPage() {
                                         <span>
                                             {mode === 'login' 
                                                 ? 'Sign In' 
-                                                : (role === 'SELLER' ? 'Register Store Owner' : 'Create Customer Account')}
+                                                : (role === 'SELLER' ? 'Register Store Owner' : role === 'DELIVERY' ? 'Register Delivery Partner' : role === 'ADMIN' ? 'Register Master Admin' : 'Create Customer Account')}
                                         </span>
                                         <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
                                     </>

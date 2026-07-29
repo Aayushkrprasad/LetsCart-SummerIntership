@@ -25,14 +25,14 @@ export default function ProductOrbitShowcase() {
 
             {/* Orbit Container Header / Badge */}
             <div className="z-20 text-center mb-6">
-                <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-green-500/10 border border-green-500/20 text-green-700 text-xs font-semibold backdrop-blur-md mb-2 shadow-xs">
-                    <Sparkles size={14} className="text-green-600 animate-spin" />
+                <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-green-500/10 border border-green-500/20 text-green-700 dark:text-green-400 text-xs font-semibold backdrop-blur-md mb-2 shadow-xs">
+                    <Sparkles size={14} className="text-green-600 dark:text-green-400 animate-spin" />
                     <span>Trending Collection 2026</span>
                 </div>
-                <h2 className="text-2xl lg:text-3xl font-extrabold text-slate-800 tracking-tight">
+                <h2 className="text-2xl lg:text-3xl font-extrabold text-slate-800 dark:text-slate-200 tracking-tight">
                     Shop Smarter, <span className="text-transparent bg-clip-text bg-gradient-to-r from-green-600 to-emerald-500">Live Better</span>
                 </h2>
-                <p className="text-xs text-slate-500 max-w-sm mx-auto mt-1 font-medium">
+                <p className="text-xs text-slate-500 dark:text-slate-400 max-w-sm mx-auto mt-1 font-medium">
                     Join thousands of shoppers discovering curated products with AI recommendations.
                 </p>
             </div>
@@ -42,16 +42,16 @@ export default function ProductOrbitShowcase() {
                 
                 {/* Outer Concentric Orbit Ring Lines */}
                 <div className="absolute inset-0 rounded-full border-2 border-dashed border-green-500/20 animate-pulse pointer-events-none" />
-                <div className="absolute inset-6 rounded-full border border-slate-200/80 pointer-events-none" />
+                <div className="absolute inset-6 rounded-full border border-slate-200/80 dark:border-slate-800/80 pointer-events-none" />
                 <div className="absolute inset-16 rounded-full border border-green-400/15 pointer-events-none" />
 
                 {/* Center Core Showcase Hub */}
-                <div className="relative z-10 w-40 h-40 rounded-full bg-gradient-to-br from-white via-slate-50 to-green-50/60 border border-green-200/60 shadow-xl shadow-green-500/10 flex flex-col items-center justify-center p-4 text-center backdrop-blur-xl transition-transform duration-500 group-hover:scale-105">
+                <div className="relative z-10 w-40 h-40 rounded-full bg-gradient-to-br from-white via-slate-50 to-green-50/60 dark:from-slate-900 dark:via-slate-950 dark:to-green-950/20 border border-green-200/60 dark:border-slate-800/80 shadow-xl shadow-green-500/10 flex flex-col items-center justify-center p-4 text-center backdrop-blur-xl transition-transform duration-500 group-hover:scale-105">
                     <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-green-600 to-emerald-500 text-white flex items-center justify-center shadow-lg shadow-green-500/30 mb-2">
                         <TrendingUp size={22} />
                     </div>
-                    <span className="text-xs font-bold text-slate-800 leading-tight">10k+ Products</span>
-                    <span className="text-[10px] text-green-600 font-semibold mt-0.5 flex items-center gap-0.5">
+                    <span className="text-xs font-bold text-slate-800 dark:text-slate-200 leading-tight">10k+ Products</span>
+                    <span className="text-[10px] text-green-600 dark:text-green-400 font-semibold mt-0.5 flex items-center gap-0.5">
                         <ShieldCheck size={12} /> Verified Sellers
                     </span>
                 </div>
@@ -75,10 +75,10 @@ export default function ProductOrbitShowcase() {
                             >
                                 {/* Counter-rotating card container so image stays upright */}
                                 <div className="animate-counter-rotate group-hover:[animation-play-state:paused]">
-                                    <div className="w-22 h-22 rounded-2xl bg-white/90 backdrop-blur-xl border border-slate-200/90 shadow-lg shadow-slate-200/80 p-2 flex flex-col items-center justify-between hover:scale-115 hover:shadow-green-500/20 hover:border-green-400 transition-all duration-300 cursor-pointer group/card">
+                                    <div className="w-22 h-22 rounded-2xl bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl border border-slate-200/90 dark:border-slate-800 shadow-lg shadow-slate-200/80 dark:shadow-none p-2 flex flex-col items-center justify-between hover:scale-115 hover:shadow-green-500/20 hover:border-green-400 transition-all duration-300 cursor-pointer group/card">
                                         
                                         {/* Product Thumbnail */}
-                                        <div className="relative w-12 h-12 flex items-center justify-center overflow-hidden rounded-xl bg-slate-50">
+                                        <div className="relative w-12 h-12 flex items-center justify-center overflow-hidden rounded-xl bg-slate-50 dark:bg-slate-800">
                                             <Image
                                                 src={product.img}
                                                 alt={product.name}
@@ -89,10 +89,10 @@ export default function ProductOrbitShowcase() {
 
                                         {/* Product Info Badge */}
                                         <div className="w-full text-center">
-                                            <p className="text-[10px] font-bold text-slate-800 truncate leading-none">
+                                            <p className="text-[10px] font-bold text-slate-800 dark:text-slate-200 truncate leading-none">
                                                 {product.name}
                                             </p>
-                                            <span className="text-[9px] font-extrabold text-green-600 block mt-0.5">
+                                            <span className="text-[9px] font-extrabold text-green-600 dark:text-green-400 block mt-0.5">
                                                 {product.price}
                                             </span>
                                         </div>
@@ -106,15 +106,15 @@ export default function ProductOrbitShowcase() {
             </div>
 
             {/* Bottom Floating Stats Pill */}
-            <div className="z-20 mt-8 flex items-center gap-6 bg-white/80 backdrop-blur-xl border border-slate-200/80 px-6 py-2.5 rounded-2xl shadow-sm text-xs text-slate-600">
+            <div className="z-20 mt-8 flex items-center gap-6 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border border-slate-200/80 dark:border-slate-800/80 px-6 py-2.5 rounded-2xl shadow-sm text-xs text-slate-600 dark:text-slate-300">
                 <div className="flex items-center gap-1.5">
                     <Star size={14} className="fill-amber-400 text-amber-400" />
-                    <span className="font-bold text-slate-800">4.9/5</span> Rating
+                    <span className="font-bold text-slate-800 dark:text-slate-200">4.9/5</span> Rating
                 </div>
-                <div className="h-3 w-px bg-slate-200" />
+                <div className="h-3 w-px bg-slate-200 dark:bg-slate-800" />
                 <div className="flex items-center gap-1.5">
-                    <Zap size={14} className="text-green-600" />
-                    <span className="font-bold text-slate-800">Fast</span> Shipping
+                    <Zap size={14} className="text-green-600 dark:text-green-400" />
+                    <span className="font-bold text-slate-800 dark:text-slate-200">Fast</span> Shipping
                 </div>
             </div>
         </div>

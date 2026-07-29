@@ -12,6 +12,7 @@ enum Role {
   BUYER
   SELLER
   ADMIN
+  DELIVERY
 }
 
 enum OrderStatus {
@@ -26,20 +27,23 @@ enum OrderStatus {
 model User {
   id            String      @id @default(uuid())
   name          String
-  email         String      @unique
+  email         String
   password      String
   role          Role        @default(BUYER)
   avatar        String?
+  deliveryRegion String?   // Preferred delivery region/city/pincode for delivery partners
   createdAt     DateTime    @default(now())
   updatedAt     DateTime    @updatedAt
 
   // Relationships
-  store         Store?
-  orders        Order[]
-  wishlists     Wishlist[]
-  reviews       Review[]
-  addresses     Address[]
+  store          Store?
+  orders         Order[]
+  deliveryOrders Order[]     @relation("DeliveryOrders")
+  wishlists      Wishlist[]
+  reviews        Review[]
+  addresses      Address[]
 
+  @@unique([email, role])
   @@map("users")
 }
 
@@ -108,15 +112,18 @@ model Order {
   status          OrderStatus @default(PENDING)
   stripeSessionId String?     @unique
   invoiceUrl      String?
+  deliveryRegion  String?     // Target region/city for shipment dispatch
   createdAt       DateTime    @default(now())
   updatedAt       DateTime    @updatedAt
 
   // Relationships
-  buyerId         String
-  buyer           User        @relation(fields: [buyerId], references: [id], onDelete: Cascade)
-  storeId         String?
-  store           Store?      @relation(fields: [storeId], references: [id])
-  items           OrderItem[]
+  buyerId           String
+  buyer             User        @relation(fields: [buyerId], references: [id], onDelete: Cascade)
+  deliveryPartnerId String?
+  deliveryPartner   User?       @relation("DeliveryOrders", fields: [deliveryPartnerId], references: [id])
+  storeId           String?
+  store             Store?      @relation(fields: [storeId], references: [id])
+  items             OrderItem[]
 
   @@map("orders")
 }

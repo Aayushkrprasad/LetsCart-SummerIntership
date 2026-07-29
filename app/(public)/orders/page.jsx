@@ -38,8 +38,8 @@ export default function Orders() {
                 setOrders(orderDummyData);
             }
 
-            // Fetch Recommendations from AI engine
-            const recUrl = userId ? `/api/recommendations?userId=${userId}` : '/api/recommendations';
+            // Fetch Recommendations from Vector Cosine Similarity AI engine
+            const recUrl = userId ? `/api/recommendations/vector?userId=${userId}` : '/api/recommendations/vector';
             const recRes = await fetch(recUrl, { headers });
             const recData = await recRes.json();
             if (recData.success && recData.recommendations) {
