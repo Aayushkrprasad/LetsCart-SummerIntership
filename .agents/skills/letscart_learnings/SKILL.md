@@ -9,7 +9,7 @@ This workspace contains customized logic for role switching, database-driven cat
 ## 1. Unified Same-Email Role Switching
 - Users can register multiple profiles (e.g. BUYER, SELLER, DELIVERY) under a single email address.
 - Instead of logging out to switch profiles, the UI uses `/api/auth/switch-role` to verify their current session, generate a new JWT token for the target role, and switch profiles seamlessly.
-- Frontends (specifically the seller `StoreNavbar.jsx`) render dynamic dropdown options to switch profiles in 1 click, while `Navbar.jsx` uses the standard portal switch button.
+- Frontends (both storefront `Navbar.jsx` and seller `StoreNavbar.jsx`) render identical dynamic dropdown options to switch profiles in 1 click.
 
 ## 2. Storefront Database Catalog
 - The catalog fetched from `/api/products` (and seller store `/api/store/details`) combines database-driven products with dummy assets.
