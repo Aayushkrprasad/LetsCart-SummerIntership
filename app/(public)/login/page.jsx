@@ -223,7 +223,7 @@ export default function LoginPage() {
                         <p className="mt-2 text-sm text-slate-500 font-medium transition-all duration-300">
                             {mode === 'register' 
                                 ? (role === 'SELLER' ? 'Set up your Store Owner account' : role === 'DELIVERY' ? 'Join as a Delivery Partner' : role === 'ADMIN' ? 'Create a Master Admin account' : 'Create a Customer account to shop')
-                                : 'Welcome back! Enter your credentials to sign in'}
+                                : (role === 'SELLER' ? 'Sign in to your Seller Store Hub' : role === 'DELIVERY' ? 'Sign in to Delivery Dispatch Hub' : role === 'ADMIN' ? 'Sign in to Master Admin Portal' : 'Sign in to your Customer account')}
                         </p>
                     </div>
 
@@ -259,13 +259,12 @@ export default function LoginPage() {
                         </div>
 
                         <form onSubmit={handleSubmit} className="space-y-4">
-                            {/* Account Type Role Selector (Register Mode Only) */}
-                            {mode === 'register' && (
-                                <div className="animate-field-fade mb-2">
-                                    <label className="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1.5">
-                                        Account Type
-                                    </label>
-                                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                            {/* Account Type Role Selector */}
+                            <div className="animate-field-fade mb-2">
+                                <label className="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1.5">
+                                    {mode === 'register' ? 'Account Type' : 'Select Login Portal'}
+                                </label>
+                                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                                         <button
                                             type="button"
                                             onClick={() => setRole('BUYER')}
@@ -343,7 +342,6 @@ export default function LoginPage() {
                                         </button>
                                     </div>
                                 </div>
-                            )}
 
                             {/* Name Input (Register Mode Only) */}
                             {mode === 'register' && (

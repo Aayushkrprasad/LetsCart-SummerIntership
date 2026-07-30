@@ -15,14 +15,38 @@ export default function StoreShop() {
     const [loading, setLoading] = useState(true)
 
     const fetchStoreData = async () => {
-        setStoreInfo(dummyStoreData)
-        setProducts(productDummyData)
-        setLoading(false)
+        try {
+            const res = await fetch(`/api/store/details?username=${username}`);
+            const data = await res.json();
+            if (data.success && data.store) {
+                const store = data.store;
+                setStoreInfo({
+                    name: store.name,
+                    description: store.description || "Official LetsCart Partner Store",
+                    logo: store.logo || "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=600&auto=format&fit=crop&q=80",
+                    banner: store.banner || "",
+                    address: "Official Partner Store Location",
+                    email: store.owner?.email || "partner@letscart.com"
+                });
+                setProducts(store.products || []);
+            } else {
+                setStoreInfo(dummyStoreData);
+                setProducts(productDummyData);
+            }
+        } catch (err) {
+            console.error("Error fetching store data:", err);
+            setStoreInfo(dummyStoreData);
+            setProducts(productDummyData);
+        } finally {
+            setLoading(false);
+        }
     }
 
     useEffect(() => {
-        fetchStoreData()
-    }, [])
+        if (username) {
+            fetchStoreData();
+        }
+    }, [username])
 
     return !loading ? (
         <div className="min-h-[70vh] mx-6">

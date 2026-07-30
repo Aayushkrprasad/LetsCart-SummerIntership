@@ -15,14 +15,37 @@ const StoreLayout = ({ children }) => {
     const [storeInfo, setStoreInfo] = useState(null)
 
     const fetchIsSeller = async () => {
-        setIsSeller(true)
-        setStoreInfo(dummyStoreData)
+        if (typeof window !== 'undefined') {
+            const savedUser = localStorage.getItem('letscart_user')
+            if (savedUser) {
+                try {
+                    const user = JSON.parse(savedUser)
+                    if (user.role === 'SELLER') {
+                        setIsSeller(true)
+                        setStoreInfo(dummyStoreData)
+                    } else {
+                        setIsSeller(false)
+                    }
+                } catch (e) {
+                    setIsSeller(false)
+                }
+            } else {
+                setIsSeller(false)
+            }
+        }
         setLoading(false)
     }
 
     useEffect(() => {
         fetchIsSeller()
     }, [])
+
+    const handleSignOut = () => {
+        localStorage.removeItem('letscart_token')
+        localStorage.removeItem('letscart_user')
+        window.dispatchEvent(new Event('authChange'))
+        window.location.href = '/login'
+    }
 
     return loading ? (
         <Loading />
@@ -39,9 +62,18 @@ const StoreLayout = ({ children }) => {
     ) : (
         <div className="min-h-screen flex flex-col items-center justify-center text-center px-6">
             <h1 className="text-2xl sm:text-4xl font-semibold text-slate-400">You are not authorized to access this page</h1>
-            <Link href="/" className="bg-slate-700 text-white flex items-center gap-2 mt-8 p-2 px-6 max-sm:text-sm rounded-full">
-                go to home <ArrowRightIcon size={18} />
-            </Link>
+            <p className="text-sm text-slate-500 mt-2">Only Store Owners are allowed to view this panel.</p>
+            <div className="flex flex-col sm:flex-row gap-4 items-center justify-center mt-8">
+                <Link href="/" className="bg-slate-700 text-white flex items-center gap-2 p-2.5 px-6 rounded-full text-sm">
+                    Go to home <ArrowRightIcon size={16} />
+                </Link>
+                <button 
+                    onClick={handleSignOut}
+                    className="bg-red-600 hover:bg-red-700 transition text-white flex items-center gap-2 p-2.5 px-6 rounded-full text-sm font-semibold cursor-pointer"
+                >
+                    Sign Out & Switch Account
+                </button>
+            </div>
         </div>
     )
 }
