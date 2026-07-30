@@ -1,5 +1,5 @@
 'use client'
-import { Search, ShoppingCart, User, LogOut, Store, Package, Heart, ChevronDown, Menu, X, Sun, Moon, Truck, ShieldCheck, Sparkles, ShoppingBag } from "lucide-react";
+import { Search, ShoppingCart, User, LogOut, Store, Package, Heart, ChevronDown, Menu, X, Sun, Moon, Truck, ShieldCheck, Sparkles } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
@@ -102,45 +102,6 @@ const Navbar = () => {
         router.push('/');
     };
 
-    const handleSwitchRole = async (targetRole) => {
-        setDropdownOpen(false);
-        try {
-            const token = localStorage.getItem('letscart_token');
-            if (!token) return;
-
-            const res = await fetch('/api/auth/switch-role', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
-                },
-                body: JSON.stringify({ targetRole })
-            });
-
-            const data = await res.json();
-            if (data.success && data.token) {
-                localStorage.setItem('letscart_token', data.token);
-                localStorage.setItem('letscart_user', JSON.stringify(data.user));
-                window.dispatchEvent(new Event('authChange'));
-                toast.success(data.message || `Switched to ${targetRole}!`);
-                
-                if (targetRole === 'SELLER') {
-                    router.push('/store');
-                } else if (targetRole === 'DELIVERY') {
-                    router.push('/delivery');
-                } else if (targetRole === 'ADMIN') {
-                    router.push('/admin');
-                } else {
-                    router.push('/');
-                }
-            } else {
-                toast.error(data.message || 'Failed to switch profiles');
-            }
-        } catch (err) {
-            console.error("Role switch error:", err);
-            toast.error("Role switch connection error");
-        }
-    };
 
     const handleSearch = (e) => {
         e.preventDefault();
@@ -271,37 +232,20 @@ const Navbar = () => {
                                             </Link>
                                         )}
 
-                                        {user.hasMultipleRoles && user.availableRoles && (
-                                            <div className="border-t border-b border-slate-100 dark:border-slate-900 my-1 py-1">
-                                                <span className="px-4 py-1 text-[10px] uppercase font-bold text-slate-400 block">Switch Profile</span>
-                                                {user.availableRoles.map(availRole => {
-                                                    if (availRole === user.role) return null;
-                                                    
-                                                    let roleLabel = 'Customer';
-                                                    let roleIcon = <ShoppingBag size={14} className="text-green-600" />;
-                                                    if (availRole === 'SELLER') {
-                                                        roleLabel = 'Seller Store';
-                                                        roleIcon = <Store size={14} className="text-indigo-600" />;
-                                                    } else if (availRole === 'DELIVERY') {
-                                                        roleLabel = 'Delivery Dispatch';
-                                                        roleIcon = <Truck size={14} className="text-amber-500" />;
-                                                    } else if (availRole === 'ADMIN') {
-                                                        roleLabel = 'Master Admin';
-                                                        roleIcon = <ShieldCheck size={14} className="text-purple-600" />;
-                                                    }
-
-                                                    return (
-                                                        <button
-                                                            key={availRole}
-                                                            onClick={() => handleSwitchRole(availRole)}
-                                                            className="w-full text-left flex items-center gap-2.5 px-4 py-2 text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-900 transition cursor-pointer"
-                                                        >
-                                                            {roleIcon}
-                                                            Switch to {roleLabel}
-                                                        </button>
-                                                    );
-                                                })}
-                                            </div>
+                                        {user.hasMultipleRoles && (
+                                            <button
+                                                onClick={() => {
+                                                    setDropdownOpen(false);
+                                                    localStorage.removeItem('letscart_token');
+                                                    localStorage.removeItem('letscart_user');
+                                                    window.dispatchEvent(new Event('authChange'));
+                                                    router.push('/login');
+                                                }}
+                                                className="w-full text-left flex items-center gap-2.5 px-4 py-2 text-xs font-semibold text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-900 transition border-t border-b border-slate-100 dark:border-slate-900 my-1 py-2 cursor-pointer"
+                                            >
+                                                <Sparkles size={14} className="text-amber-500" />
+                                                Switch Portal / Account
+                                            </button>
                                         )}
 
                                         <Link
