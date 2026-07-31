@@ -28,6 +28,12 @@ LetsCart is a high-performance multi-vendor e-commerce platform designed to seam
 ### 3. Database Architecture (Prisma + PostgreSQL)
 - [x] **Schema Models Defined**: `User` (BUYER, SELLER, ADMIN), `Store`, `Product` (stock, embedding vector), `Wishlist`, `Order`, `OrderItem`, `Review`, `Address`.
 
+### 4. OAuth, Draggable AI & Cloud Hosting
+- [x] **Google & GitHub OAuth Integration**: Created secure serverless redirection and callback API endpoints (`/api/auth/oauth/google`, `/api/auth/oauth/github`), handling profile selection cookies for role switching under identical emails.
+- [x] **Draggable AI Assistant Widget**: Engineered custom mouse/touch dragging handlers in `CartAIAssistant.jsx` enabling dynamic layout shifts while keeping drag-move operations decoupled from click-toggle activations.
+- [x] **Responsive Viewport Clamping & Scaling**: Optimized widget dimensions (`w-[calc(100vw-48px)]`) and clamped draggable coordinates inside viewport bounds to prevent horizontal scroll breaking on narrow viewports.
+- [x] **Production Hosting & Environment Mapping**: Synchronized deployment commits, mapped OAuth client secrets on Vercel Dashboard, and established custom redirect callback domains.
+
 ---
 
 ## 📦 Full Specifications & Completed Modules Matrix
