@@ -149,7 +149,7 @@ export default function CartAIAssistant() {
 
             {/* Chat Drawer Window */}
             {isOpen && (
-                <div className="w-[360px] sm:w-[400px] h-[520px] bg-white/95 dark:bg-slate-950/95 backdrop-blur-2xl border border-slate-200/90 dark:border-slate-800 rounded-3xl shadow-2xl flex flex-col overflow-hidden animate-card-pop">
+                <div className="w-[calc(100vw-48px)] sm:w-[400px] h-[520px] bg-white/95 dark:bg-slate-950/95 backdrop-blur-2xl border border-slate-200/90 dark:border-slate-800 rounded-3xl shadow-2xl flex flex-col overflow-hidden animate-card-pop">
                     
                     {/* Header */}
                     <div className="bg-gradient-to-r from-emerald-700 via-green-600 to-teal-700 p-4 text-white flex items-center justify-between shadow-md">
