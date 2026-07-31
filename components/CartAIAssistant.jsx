@@ -10,6 +10,13 @@ export default function CartAIAssistant() {
     const [isTyping, setIsTyping] = useState(false);
     const products = useSelector(state => state.product?.list || []);
 
+    // Drag-and-drop state configuration
+    const [position, setPosition] = useState({ x: null, y: null });
+    const [isDragging, setIsDragging] = useState(false);
+    const [dragStart, setDragStart] = useState({ offsetX: 0, offsetY: 0 });
+    const [hasDragged, setHasDragged] = useState(false);
+    const containerRef = useRef(null);
+
     const [messages, setMessages] = useState([
         {
             id: 'msg-1',
@@ -26,6 +33,90 @@ export default function CartAIAssistant() {
             chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
         }
     }, [messages, isOpen]);
+
+    // Setup window-level event listeners for tracking position changes during drag
+    useEffect(() => {
+        const handleMouseMove = (e) => {
+            if (!isDragging) return;
+            updatePosition(e.clientX, e.clientY);
+        };
+
+        const handleTouchMove = (e) => {
+            if (!isDragging || e.touches.length !== 1) return;
+            updatePosition(e.touches[0].clientX, e.touches[0].clientY);
+        };
+
+        const handleMouseUp = () => {
+            setIsDragging(false);
+        };
+
+        const updatePosition = (clientX, clientY) => {
+            if (!containerRef.current) return;
+            
+            let newX = clientX - dragStart.offsetX;
+            let newY = clientY - dragStart.offsetY;
+
+            const elWidth = containerRef.current.offsetWidth || 0;
+            const elHeight = containerRef.current.offsetHeight || 0;
+            
+            // Mark as dragged if user actually slides the mouse/finger
+            setHasDragged(true);
+
+            // Clamp coordinates inside screen bounds with a small padding
+            const padding = 12;
+            newX = Math.max(padding, Math.min(window.innerWidth - elWidth - padding, newX));
+            newY = Math.max(padding, Math.min(window.innerHeight - elHeight - padding, newY));
+
+            setPosition({ x: newX, y: newY });
+        };
+
+        if (isDragging) {
+            window.addEventListener('mousemove', handleMouseMove);
+            window.addEventListener('mouseup', handleMouseUp);
+            window.addEventListener('touchmove', handleTouchMove);
+            window.addEventListener('touchend', handleMouseUp);
+        }
+
+        return () => {
+            window.removeEventListener('mousemove', handleMouseMove);
+            window.removeEventListener('mouseup', handleMouseUp);
+            window.removeEventListener('touchmove', handleTouchMove);
+            window.removeEventListener('touchend', handleMouseUp);
+        };
+    }, [isDragging, dragStart]);
+
+    const startDrag = (clientX, clientY) => {
+        if (!containerRef.current) return;
+        const rect = containerRef.current.getBoundingClientRect();
+        
+        setDragStart({
+            offsetX: clientX - rect.left,
+            offsetY: clientY - rect.top
+        });
+        setHasDragged(false);
+        setIsDragging(true);
+    };
+
+    const handleMouseDown = (e) => {
+        if (e.button !== 0) return; // Only allow left clicks
+        if (e.target.closest('button')) return; // Ignore drag triggers on clicking buttons
+        startDrag(e.clientX, e.clientY);
+    };
+
+    const handleTouchStart = (e) => {
+        if (e.target.closest('button')) return;
+        if (e.touches.length === 1) {
+            startDrag(e.touches[0].clientX, e.touches[0].clientY);
+        }
+    };
+
+    const handleToggleClick = (e) => {
+        if (hasDragged) {
+            e.preventDefault();
+            return;
+        }
+        setIsOpen(!isOpen);
+    };
 
     const handleSend = (textToSend) => {
         const queryText = textToSend || input;
@@ -128,13 +219,23 @@ export default function CartAIAssistant() {
         });
     };
 
+    const positionStyle = position.x !== null && position.y !== null
+        ? { left: `${position.x}px`, top: `${position.y}px`, position: 'fixed' }
+        : { right: '24px', bottom: '24px', position: 'fixed' };
+
     return (
-        <div className="fixed bottom-6 right-6 z-50">
+        <div 
+            ref={containerRef}
+            style={positionStyle}
+            className="z-50 select-none touch-none"
+        >
             {/* Launcher Button */}
             {!isOpen && (
                 <button
-                    onClick={() => setIsOpen(true)}
-                    className="relative group flex items-center gap-2.5 px-5 py-3 bg-gradient-to-r from-emerald-600 via-green-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white rounded-full shadow-2xl shadow-emerald-600/40 hover:scale-105 active:scale-95 transition-all duration-300 cursor-pointer border border-white/20"
+                    onMouseDown={handleMouseDown}
+                    onTouchStart={handleTouchStart}
+                    onClick={handleToggleClick}
+                    className="relative group flex items-center gap-2.5 px-5 py-3 bg-gradient-to-r from-emerald-600 via-green-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white rounded-full shadow-2xl shadow-emerald-600/40 hover:scale-105 active:scale-95 transition-all duration-300 cursor-grab active:cursor-grabbing border border-white/20"
                 >
                     <div className="relative">
                         <Sparkles size={20} className="text-yellow-300 animate-pulse" />
@@ -152,7 +253,11 @@ export default function CartAIAssistant() {
                 <div className="w-[calc(100vw-48px)] sm:w-[400px] h-[520px] bg-white/95 dark:bg-slate-950/95 backdrop-blur-2xl border border-slate-200/90 dark:border-slate-800 rounded-3xl shadow-2xl flex flex-col overflow-hidden animate-card-pop">
                     
                     {/* Header */}
-                    <div className="bg-gradient-to-r from-emerald-700 via-green-600 to-teal-700 p-4 text-white flex items-center justify-between shadow-md">
+                    <div 
+                        onMouseDown={handleMouseDown}
+                        onTouchStart={handleTouchStart}
+                        className="bg-gradient-to-r from-emerald-700 via-green-600 to-teal-700 p-4 text-white flex items-center justify-between shadow-md cursor-grab active:cursor-grabbing"
+                    >
                         <div className="flex items-center gap-3">
                             <div className="w-9 h-9 rounded-xl bg-white/20 backdrop-blur-md flex items-center justify-center border border-white/30">
                                 <Bot size={22} className="text-yellow-300" />
