@@ -97,14 +97,14 @@ export default function CartAIAssistant() {
         setIsDragging(true);
     };
 
-    const handleMouseDown = (e) => {
+    const handleMouseDown = (e, isLauncher = false) => {
         if (e.button !== 0) return; // Only allow left clicks
-        if (e.target.closest('button')) return; // Ignore drag triggers on clicking buttons
+        if (!isLauncher && e.target.closest('button')) return; // Ignore drag triggers on clicking action buttons inside open drawer
         startDrag(e.clientX, e.clientY);
     };
 
-    const handleTouchStart = (e) => {
-        if (e.target.closest('button')) return;
+    const handleTouchStart = (e, isLauncher = false) => {
+        if (!isLauncher && e.target.closest('button')) return;
         if (e.touches.length === 1) {
             startDrag(e.touches[0].clientX, e.touches[0].clientY);
         }
@@ -232,8 +232,8 @@ export default function CartAIAssistant() {
             {/* Launcher Button */}
             {!isOpen && (
                 <button
-                    onMouseDown={handleMouseDown}
-                    onTouchStart={handleTouchStart}
+                    onMouseDown={(e) => handleMouseDown(e, true)}
+                    onTouchStart={(e) => handleTouchStart(e, true)}
                     onClick={handleToggleClick}
                     className="relative group flex items-center gap-2.5 px-5 py-3 bg-gradient-to-r from-emerald-600 via-green-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white rounded-full shadow-2xl shadow-emerald-600/40 hover:scale-105 active:scale-95 transition-all duration-300 cursor-grab active:cursor-grabbing border border-white/20"
                 >
@@ -254,8 +254,8 @@ export default function CartAIAssistant() {
                     
                     {/* Header */}
                     <div 
-                        onMouseDown={handleMouseDown}
-                        onTouchStart={handleTouchStart}
+                        onMouseDown={(e) => handleMouseDown(e, false)}
+                        onTouchStart={(e) => handleTouchStart(e, false)}
                         className="bg-gradient-to-r from-emerald-700 via-green-600 to-teal-700 p-4 text-white flex items-center justify-between shadow-md cursor-grab active:cursor-grabbing"
                     >
                         <div className="flex items-center gap-3">
