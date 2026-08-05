@@ -15,7 +15,10 @@ export async function GET(request) {
             }, { status: 500 });
         }
 
-        const googleAuthUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=code&scope=${encodeURIComponent('openid profile email')}&prompt=select_account`;
+        const { searchParams } = new URL(request.url);
+        const role = searchParams.get('role') || 'BUYER';
+
+        const googleAuthUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=code&scope=${encodeURIComponent('openid profile email')}&prompt=select_account&state=${encodeURIComponent(role)}`;
 
         return NextResponse.redirect(googleAuthUrl);
     } catch (error) {

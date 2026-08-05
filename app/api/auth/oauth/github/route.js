@@ -15,7 +15,10 @@ export async function GET(request) {
             }, { status: 500 });
         }
 
-        const githubAuthUrl = `https://github.com/login/oauth/authorize?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=${encodeURIComponent('user:email')}`;
+        const { searchParams } = new URL(request.url);
+        const role = searchParams.get('role') || 'BUYER';
+
+        const githubAuthUrl = `https://github.com/login/oauth/authorize?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=${encodeURIComponent('user:email')}&state=${encodeURIComponent(role)}`;
 
         return NextResponse.redirect(githubAuthUrl);
     } catch (error) {

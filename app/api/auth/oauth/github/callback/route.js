@@ -7,6 +7,7 @@ export async function GET(request) {
     try {
         const { searchParams } = new URL(request.url);
         const code = searchParams.get('code');
+        const state = searchParams.get('state') || 'BUYER';
 
         if (!code) {
             return NextResponse.json({ success: false, message: 'Authorization code is missing.' }, { status: 400 });
@@ -92,12 +93,13 @@ export async function GET(request) {
             throw new Error('GitHub account did not return a valid email address.');
         }
 
-        // 4. Find user or register new user with BUYER role by default
+        // 4. Find user or register new user with target role
+        const targetRole = ['BUYER', 'SELLER', 'DELIVERY', 'ADMIN'].includes(state) ? state : 'BUYER';
         let user = await prisma.user.findUnique({
             where: {
                 email_role: {
                     email,
-                    role: 'BUYER'
+                    role: targetRole
                 }
             }
         });
@@ -112,7 +114,7 @@ export async function GET(request) {
                     name,
                     email,
                     password: hashedPassword,
-                    role: 'BUYER',
+                    role: targetRole,
                     avatar
                 }
             });

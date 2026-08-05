@@ -547,7 +547,7 @@ export default function RegisterPage() {
                         <div className="grid grid-cols-2 gap-3">
                             <button
                                 type="button"
-                                onClick={() => window.location.href = '/api/auth/oauth/google'}
+                                onClick={() => window.location.href = `/api/auth/oauth/google?role=${role}`}
                                 className="flex items-center justify-center gap-2 py-2.5 px-4 border border-slate-200/90 rounded-xl text-xs font-semibold text-slate-700 hover:bg-slate-50 hover:border-slate-300 hover:-translate-y-0.5 active:translate-y-0 transition-all duration-200 cursor-pointer shadow-xs"
                             >
                                 <svg className="w-4 h-4" viewBox="0 0 24 24">
@@ -560,7 +560,7 @@ export default function RegisterPage() {
                             </button>
                             <button
                                 type="button"
-                                onClick={() => window.location.href = '/api/auth/oauth/github'}
+                                onClick={() => window.location.href = `/api/auth/oauth/github?role=${role}`}
                                 className="flex items-center justify-center gap-2 py-2.5 px-4 border border-slate-200/90 rounded-xl text-xs font-semibold text-slate-700 hover:bg-slate-50 hover:border-slate-300 hover:-translate-y-0.5 active:translate-y-0 transition-all duration-200 cursor-pointer shadow-xs"
                             >
                                 <svg className="w-4 h-4 fill-slate-800" viewBox="0 0 24 24">

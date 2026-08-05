@@ -480,6 +480,39 @@ const Navbar = () => {
                                     <Package size={16} className="text-slate-500 dark:text-slate-400" />
                                     My Orders
                                 </Link>
+
+                                {user.hasMultipleRoles && user.availableRoles && (
+                                    <div className="border-t border-slate-100 dark:border-slate-900 my-2 pt-2 flex flex-col gap-1">
+                                        <span className="px-3 py-1 text-[10px] uppercase font-bold text-slate-400 block">Switch Profile</span>
+                                        {user.availableRoles.map(availRole => {
+                                            if (availRole === user.role) return null;
+                                            
+                                            let roleLabel = 'Customer';
+                                            let roleIcon = <ShoppingBag size={14} className="text-green-600 dark:text-green-500" />;
+                                            if (availRole === 'SELLER') {
+                                                roleLabel = 'Seller Store';
+                                                roleIcon = <Store size={14} className="text-indigo-600 dark:text-indigo-400" />;
+                                            } else if (availRole === 'DELIVERY') {
+                                                roleLabel = 'Delivery Dispatch';
+                                                roleIcon = <Truck size={14} className="text-amber-500" />;
+                                            } else if (availRole === 'ADMIN') {
+                                                roleLabel = 'Master Admin';
+                                                roleIcon = <ShieldCheck size={14} className="text-purple-600 dark:text-purple-500" />;
+                                            }
+
+                                            return (
+                                                <button
+                                                    key={availRole}
+                                                    onClick={() => { handleSwitchRole(availRole); setMobileMenuOpen(false); }}
+                                                    className="w-full text-left flex items-center gap-2.5 px-3 py-2 text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-900 transition rounded-lg cursor-pointer"
+                                                >
+                                                    {roleIcon}
+                                                    Switch to {roleLabel}
+                                                </button>
+                                            );
+                                        })}
+                                    </div>
+                                )}
                             </div>
 
                             <button
