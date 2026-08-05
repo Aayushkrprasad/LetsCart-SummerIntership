@@ -1,5 +1,5 @@
 'use client'
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Mail, Lock, User, Eye, EyeOff, ArrowRight, ShoppingBag, Sparkles, Store, Truck, ShieldCheck, X } from 'lucide-react';
@@ -13,6 +13,44 @@ export default function RegisterPage() {
     const [showPassword, setShowPassword] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [roleModalRoles, setRoleModalRoles] = useState(null); // array of roles if multi-account match
+    const [showAdminPortal, setShowAdminPortal] = useState(false);
+
+    useEffect(() => {
+        // Toggle developer mode / admin portal visibility using Ctrl + Shift + A
+        const handleKeyDown = (e) => {
+            if (e.ctrlKey && e.shiftKey && (e.key === 'A' || e.key === 'a')) {
+                e.preventDefault();
+                setShowAdminPortal(prev => {
+                    const next = !prev;
+                    if (next) {
+                        setTimeout(() => {
+                            toast.success("Developer mode: Admin portal revealed! 🛠️", {
+                                id: 'dev-mode',
+                                icon: '🛠️',
+                                duration: 3000
+                            });
+                        }, 0);
+                    } else {
+                        setTimeout(() => {
+                            setRole(currentRole => currentRole === 'ADMIN' ? 'BUYER' : currentRole);
+                            toast.success("Developer mode: Admin portal hidden! 🔒", {
+                                id: 'dev-mode',
+                                icon: '🔒',
+                                duration: 3000
+                            });
+                        }, 0);
+                    }
+                    return next;
+                });
+            }
+        };
+
+        window.addEventListener('keydown', handleKeyDown);
+        return () => {
+            window.removeEventListener('keydown', handleKeyDown);
+        };
+    }, []);
+
     const [formData, setFormData] = useState({
         name: '',
         email: '',
@@ -265,7 +303,7 @@ export default function RegisterPage() {
                                     <label className="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1.5">
                                         Account Type
                                     </label>
-                                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                                    <div className={`grid grid-cols-2 ${showAdminPortal ? 'sm:grid-cols-4' : 'sm:grid-cols-3'} gap-2`}>
                                         <button
                                             type="button"
                                             onClick={() => setRole('BUYER')}
@@ -323,24 +361,26 @@ export default function RegisterPage() {
                                             </div>
                                         </button>
 
-                                        <button
-                                            type="button"
-                                            onClick={() => setRole('ADMIN')}
-                                            className={`p-2 rounded-xl border text-left transition-all duration-200 cursor-pointer ${
-                                                role === 'ADMIN'
-                                                    ? 'border-purple-500 bg-purple-50/60 ring-2 ring-purple-500/20 text-slate-900'
-                                                    : 'border-slate-200 bg-slate-50/50 text-slate-500 hover:border-slate-300'
-                                            }`}
-                                        >
-                                            <div className="flex items-center justify-between">
-                                                <ShieldCheck size={15} className={role === 'ADMIN' ? 'text-purple-600' : 'text-slate-400'} />
-                                                {role === 'ADMIN' && <span className="w-1.5 h-1.5 rounded-full bg-purple-500" />}
-                                            </div>
-                                            <div className="mt-1">
-                                                <p className="text-[11px] font-bold text-slate-800">Admin</p>
-                                                <p className="text-[8px] text-slate-500">Platform</p>
-                                            </div>
-                                        </button>
+                                        {showAdminPortal && (
+                                            <button
+                                                type="button"
+                                                onClick={() => setRole('ADMIN')}
+                                                className={`p-2 rounded-xl border text-left transition-all duration-200 cursor-pointer ${
+                                                    role === 'ADMIN'
+                                                        ? 'border-purple-500 bg-purple-50/60 ring-2 ring-purple-500/20 text-slate-900'
+                                                        : 'border-slate-200 bg-slate-50/50 text-slate-500 hover:border-slate-300'
+                                                }`}
+                                            >
+                                                <div className="flex items-center justify-between">
+                                                    <ShieldCheck size={15} className={role === 'ADMIN' ? 'text-purple-600' : 'text-slate-400'} />
+                                                    {role === 'ADMIN' && <span className="w-1.5 h-1.5 rounded-full bg-purple-500" />}
+                                                </div>
+                                                <div className="mt-1">
+                                                    <p className="text-[11px] font-bold text-slate-800">Admin</p>
+                                                    <p className="text-[8px] text-slate-500">Platform</p>
+                                                </div>
+                                            </button>
+                                        )}
                                     </div>
                                 </div>
                             )}

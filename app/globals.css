@@ -21,6 +21,15 @@
         }
     }
 
+    @keyframes float3d {
+        0%, 100% {
+            transform: perspective(1000px) translateY(0px) rotateY(-14deg) rotateX(6deg) rotateZ(-2deg);
+        }
+        50% {
+            transform: perspective(1000px) translateY(-32px) rotateY(14deg) rotateX(-6deg) rotateZ(2deg);
+        }
+    }
+
     @keyframes floatReverse {
         0%, 100% {
             transform: translateY(0px) scale(1);
@@ -84,6 +93,11 @@
 
     .animate-float-reverse {
         animation: floatReverse 10s ease-in-out infinite;
+    }
+
+    .animate-float-3d {
+        animation: float3d 6s ease-in-out infinite;
+        transform-style: preserve-3d;
     }
 
     .animate-card-pop {

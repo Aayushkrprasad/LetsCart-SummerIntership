@@ -7,12 +7,72 @@ export default function ProductOrbitShowcase() {
     const currency = process.env.NEXT_PUBLIC_CURRENCY_SYMBOL || '₹';
 
     const products = [
-        { id: 1, name: 'Premium Headphones', price: `${currency}1,999`, category: 'Audio', img: assets.product_img1, angle: 0 },
-        { id: 2, name: 'Smart Fitness Watch', price: `${currency}2,499`, category: 'Wearables', img: assets.product_img2, angle: 60 },
-        { id: 3, name: 'Wireless Speaker', price: `${currency}1,299`, category: 'Audio', img: assets.product_img3, angle: 120 },
-        { id: 4, name: 'Pro Gaming Mouse', price: `${currency}899`, category: 'Electronics', img: assets.product_img4, angle: 180 },
-        { id: 5, name: 'HD Action Cam', price: `${currency}3,100`, category: 'Cameras', img: assets.product_img5, angle: 240 },
-        { id: 6, name: 'Noise Cancel Buds', price: `${currency}1,499`, category: 'Audio', img: assets.product_img6, angle: 300 },
+        { 
+            id: 1, 
+            name: 'Premium Headphones', 
+            price: `${currency}1,999`, 
+            category: 'Audio', 
+            img: assets.product_img1, 
+            angle: 0,
+            glow: 'hover:shadow-[0_0_20px_rgba(59,130,246,0.4)]',
+            plateBg: 'bg-blue-50/60 dark:bg-blue-950/20',
+            borderColor: 'hover:border-blue-400 dark:hover:border-blue-500'
+        },
+        { 
+            id: 2, 
+            name: 'Smart Fitness Watch', 
+            price: `${currency}2,499`, 
+            category: 'Wearables', 
+            img: assets.product_img2, 
+            angle: 60,
+            glow: 'hover:shadow-[0_0_20px_rgba(236,72,153,0.4)]',
+            plateBg: 'bg-pink-50/60 dark:bg-pink-950/20',
+            borderColor: 'hover:border-pink-400 dark:hover:border-pink-500'
+        },
+        { 
+            id: 3, 
+            name: 'Wireless Speaker', 
+            price: `${currency}1,299`, 
+            category: 'Audio', 
+            img: assets.product_img3, 
+            angle: 120,
+            glow: 'hover:shadow-[0_0_20px_rgba(16,185,129,0.4)]',
+            plateBg: 'bg-emerald-50/60 dark:bg-emerald-950/20',
+            borderColor: 'hover:border-emerald-400 dark:hover:border-emerald-500'
+        },
+        { 
+            id: 4, 
+            name: 'Pro Gaming Mouse', 
+            price: `${currency}899`, 
+            category: 'Electronics', 
+            img: assets.product_img4, 
+            angle: 180,
+            glow: 'hover:shadow-[0_0_20px_rgba(239,68,68,0.4)]',
+            plateBg: 'bg-red-50/60 dark:bg-red-950/20',
+            borderColor: 'hover:border-red-400 dark:hover:border-red-500'
+        },
+        { 
+            id: 5, 
+            name: 'HD Action Cam', 
+            price: `${currency}3,100`, 
+            category: 'Cameras', 
+            img: assets.product_img5, 
+            angle: 240,
+            glow: 'hover:shadow-[0_0_20px_rgba(245,158,11,0.4)]',
+            plateBg: 'bg-amber-50/60 dark:bg-amber-950/20',
+            borderColor: 'hover:border-amber-400 dark:hover:border-amber-500'
+        },
+        { 
+            id: 6, 
+            name: 'Noise Cancel Buds', 
+            price: `${currency}1,499`, 
+            category: 'Audio', 
+            img: assets.product_img6, 
+            angle: 300,
+            glow: 'hover:shadow-[0_0_20px_rgba(139,92,246,0.4)]',
+            plateBg: 'bg-purple-50/60 dark:bg-purple-950/20',
+            borderColor: 'hover:border-purple-400 dark:hover:border-purple-500'
+        },
     ];
 
     // Radius of orbit ring in pixels
@@ -75,20 +135,27 @@ export default function ProductOrbitShowcase() {
                             >
                                 {/* Counter-rotating card container so image stays upright */}
                                 <div className="animate-counter-rotate group-hover:[animation-play-state:paused]">
-                                    <div className="w-22 h-22 rounded-2xl bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl border border-slate-200/90 dark:border-slate-800 shadow-lg shadow-slate-200/80 dark:shadow-none p-2 flex flex-col items-center justify-between hover:scale-115 hover:shadow-green-500/20 hover:border-green-400 transition-all duration-300 cursor-pointer group/card">
+                                    <div 
+                                        className={`w-22 h-22 rounded-2xl bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl border border-slate-200/90 dark:border-slate-800 shadow-lg p-2 flex flex-col items-center justify-between hover:scale-115 hover:-translate-y-1.5 transition-all duration-300 cursor-pointer group/card ${product.glow} ${product.borderColor}`}
+                                        style={{ transformStyle: 'preserve-3d', transform: 'perspective(600px) rotateX(0deg) rotateY(0deg) scale3d(1,1,1)' }}
+                                    >
                                         
-                                        {/* Product Thumbnail */}
-                                        <div className="relative w-12 h-12 flex items-center justify-center overflow-hidden rounded-xl bg-slate-50 dark:bg-slate-800">
+                                        {/* Product Thumbnail with custom theme bg */}
+                                        <div 
+                                            className={`relative w-12 h-12 flex items-center justify-center overflow-hidden rounded-xl ${product.plateBg} transition-all duration-300`}
+                                            style={{ transform: 'translateZ(18px)', transformStyle: 'preserve-3d' }}
+                                        >
                                             <Image
                                                 src={product.img}
                                                 alt={product.name}
                                                 fill
-                                                className="object-contain p-1 group-hover/card:scale-110 transition-transform duration-300"
+                                                className="object-contain p-1 group-hover/card:scale-115 transition-transform duration-300 pointer-events-none"
+                                                style={{ transform: 'translateZ(10px)' }}
                                             />
                                         </div>
 
                                         {/* Product Info Badge */}
-                                        <div className="w-full text-center">
+                                        <div className="w-full text-center" style={{ transform: 'translateZ(25px)' }}>
                                             <p className="text-[10px] font-bold text-slate-800 dark:text-slate-200 truncate leading-none">
                                                 {product.name}
                                             </p>

@@ -53,9 +53,9 @@ const ProductCard = ({ product }) => {
     }
 
     return (
-        <Link href={`/product/${product.id}`} className='group max-xl:mx-auto relative block'>
-            <div className='bg-[#F5F5F5] dark:bg-slate-900/60 h-40 sm:w-60 sm:h-68 rounded-lg flex items-center justify-center relative overflow-hidden transition-colors border border-transparent dark:border-slate-800/60'>
-                <Image width={500} height={500} className='max-h-30 sm:max-h-40 w-auto group-hover:scale-115 transition duration-300' src={product.images[0]} alt={product.name} />
+        <Link href={`/product/${product.id}`} className='group max-xl:mx-auto relative block transition-all duration-300 hover:-translate-y-1.5'>
+            <div className='bg-[#F5F5F5] dark:bg-slate-900/60 h-40 sm:w-60 sm:h-68 rounded-2xl flex items-center justify-center relative overflow-hidden transition-all duration-300 border border-slate-200/40 dark:border-slate-800/60 group-hover:border-green-500/30 group-hover:shadow-[0_8px_30px_rgba(0,0,0,0.04)] dark:group-hover:shadow-[0_8px_30px_rgba(0,201,80,0.06)]'>
+                <Image width={500} height={500} className='max-h-30 sm:max-h-40 w-auto group-hover:scale-110 group-hover:rotate-3 transition-all duration-500 ease-out' src={product.images[0]} alt={product.name} />
                 
                 {/* Heart Wishlist Button */}
                 <button
@@ -71,7 +71,7 @@ const ProductCard = ({ product }) => {
             </div>
             <div className='flex justify-between gap-3 text-sm text-slate-800 dark:text-slate-200 pt-2 max-w-60'>
                 <div>
-                    <p className='font-medium line-clamp-1'>{product.name}</p>
+                    <p className='font-medium line-clamp-1 group-hover:text-green-600 dark:group-hover:text-green-400 transition-colors duration-200'>{product.name}</p>
                     <div className='flex'>
                         {Array(5).fill('').map((_, index) => (
                             <StarIcon key={index} size={14} className='text-transparent mt-0.5' fill={rating >= index + 1 ? "#00C950" : "#D1D5DB"} />

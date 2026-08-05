@@ -41,7 +41,7 @@ const Hero = () => {
             loop={true}
             speed={900}
             autoplay={{
-                delay: 4500,
+                delay: 2000,
                 disableOnInteraction: false,
                 pauseOnMouseEnter: true,
             }}

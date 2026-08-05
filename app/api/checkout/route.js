@@ -95,10 +95,12 @@ export async function POST(request) {
         // Call Stripe REST API to create Checkout Session
         const params = new URLSearchParams();
         params.append('payment_method_types[0]', 'card');
+        params.append('payment_method_types[1]', 'upi');
         params.append('mode', 'payment');
         params.append('success_url', `${origin}/orders?success=true&order_id=${order.id}&session_id={CHECKOUT_SESSION_ID}`);
         params.append('cancel_url', `${origin}/cart?canceled=true`);
         params.append('client_reference_id', order.id);
+        params.append('payment_intent_data[transfer_group]', `order_${order.id}`);
 
         lineItems.forEach((item, index) => {
             params.append(`line_items[${index}][price_data][currency]`, 'inr');
