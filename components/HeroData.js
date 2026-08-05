@@ -59,7 +59,7 @@ export const heroSlides = [
     offer: "Free Shipping on Orders Above ₹500!",
     title: "Gadgets you'll love.",
     subtitle: "Prices you'll trust.",
-    price: "₹4.90",
+    price: "₹4,990",
     button: "LEARN MORE",
     image: assets.hero_model_img,
     bg: "bg-green-200",

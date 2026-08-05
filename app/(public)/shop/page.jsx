@@ -1,5 +1,5 @@
 'use client'
-import { Suspense, useState, useMemo } from "react"
+import { Suspense, useState, useMemo, useEffect } from "react"
 import ProductCard from "@/components/ProductCard"
 import { MoveLeftIcon, Filter, SlidersHorizontal, RotateCcw, Star, Check, Sparkles } from "lucide-react"
 import { useRouter, useSearchParams } from "next/navigation"
@@ -8,16 +8,25 @@ import { useSelector } from "react-redux"
 function ShopContent() {
     const searchParams = useSearchParams()
     const search = searchParams.get('search')
+    const categoryParam = searchParams.get('category')
     const router = useRouter()
 
     const products = useSelector(state => state.product.list || [])
 
     // Filter states
-    const [selectedCategory, setSelectedCategory] = useState('all')
+    const [selectedCategory, setSelectedCategory] = useState(categoryParam || 'all')
     const [maxPrice, setMaxPrice] = useState(5000)
     const [minRating, setMinRating] = useState(0)
     const [sortBy, setSortBy] = useState('featured')
     const [mobileFilterOpen, setMobileFilterOpen] = useState(false)
+
+    useEffect(() => {
+        if (categoryParam) {
+            setSelectedCategory(categoryParam)
+        } else {
+            setSelectedCategory('all')
+        }
+    }, [categoryParam])
 
     // Dynamic unique categories
     const categories = useMemo(() => {
@@ -61,7 +70,7 @@ function ShopContent() {
         setMaxPrice(highestPrice);
         setMinRating(0);
         setSortBy('featured');
-        if (search) router.push('/shop');
+        if (search || categoryParam) router.push('/shop');
     };
 
     return (

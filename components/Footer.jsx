@@ -1,6 +1,13 @@
+'use client'
+import { useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import toast from "react-hot-toast";
 
 const Footer = () => {
+    const router = useRouter();
+    const [isPrivacyOpen, setIsPrivacyOpen] = useState(false);
+    const [isSwitchModalOpen, setIsSwitchModalOpen] = useState(false);
 
     const MailIcon = () => (<svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"> <path d="M14.6654 4.66699L8.67136 8.48499C8.46796 8.60313 8.23692 8.66536 8.0017 8.66536C7.76647 8.66536 7.53544 8.60313 7.33203 8.48499L1.33203 4.66699M2.66536 2.66699H13.332C14.0684 2.66699 14.6654 3.26395 14.6654 4.00033V12.0003C14.6654 12.7367 14.0684 13.3337 13.332 13.3337H2.66536C1.92898 13.3337 1.33203 12.7367 1.33203 12.0003V4.00033C1.33203 3.26395 1.92898 2.66699 2.66536 2.66699Z" stroke="#90A1B9" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /> </svg>)
     const PhoneIcon = () => (<svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"> <path d="M9.22003 11.045C9.35772 11.1082 9.51283 11.1227 9.65983 11.086C9.80682 11.0493 9.93692 10.9636 10.0287 10.843L10.2654 10.533C10.3896 10.3674 10.5506 10.233 10.7357 10.1404C10.9209 10.0479 11.125 9.99967 11.332 9.99967H13.332C13.6857 9.99967 14.0248 10.1402 14.2748 10.3902C14.5249 10.6402 14.6654 10.9794 14.6654 11.333V13.333C14.6654 13.6866 14.5249 14.0258 14.2748 14.2758C14.0248 14.5259 13.6857 14.6663 13.332 14.6663C10.1494 14.6663 7.09719 13.4021 4.84675 11.1516C2.59631 8.90119 1.33203 5.84894 1.33203 2.66634C1.33203 2.31272 1.47251 1.97358 1.72256 1.72353C1.9726 1.47348 2.31174 1.33301 2.66536 1.33301H4.66536C5.01899 1.33301 5.35812 1.47348 5.60817 1.72353C5.85822 1.97358 5.9987 2.31272 5.9987 2.66634V4.66634C5.9987 4.87333 5.9505 5.07749 5.85793 5.26263C5.76536 5.44777 5.63096 5.60881 5.46536 5.73301L5.15336 5.96701C5.03098 6.06046 4.94471 6.1934 4.90923 6.34324C4.87374 6.49308 4.89122 6.65059 4.9587 6.78901C5.86982 8.63959 7.36831 10.1362 9.22003 11.045Z" stroke="#90A1B9" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /> </svg>)
@@ -14,27 +21,71 @@ const Footer = () => {
         {
             title: "PRODUCTS",
             links: [
-                { text: "Earphones", path: '/', icon: null },
-                { text: "Headphones", path: '/', icon: null },
-                { text: "Smartphones", path: '/', icon: null },
-                { text: "Laptops", path: '/', icon: null },
+                { text: "Earphones", path: '/shop?category=Earbuds', icon: null },
+                { text: "Headphones", path: '/shop?category=Headphones', icon: null },
+                { text: "Smartphones", path: '/shop?category=Watch', icon: null },
+                { text: "Laptops", path: '/shop?category=Laptop', icon: null },
             ]
         },
         {
             title: "WEBSITE?",
             links: [
                 { text: "Home", path: '/', icon: null },
-                { text: "Privacy Policy", path: '/', icon: null },
+                { 
+                    text: "Privacy Policy", 
+                    path: '#', 
+                    icon: null,
+                    onClick: (e) => {
+                        e.preventDefault();
+                        setIsPrivacyOpen(true);
+                    }
+                },
                 { text: "Become Plus Member", path: '/pricing', icon: null },
-                { text: "Create Your Store", path: '/create-store', icon: null },
+                { 
+                    text: "Create Your Store", 
+                    path: '#', 
+                    icon: null,
+                    onClick: async (e) => {
+                        e.preventDefault();
+                        if (typeof window !== 'undefined') {
+                            const token = localStorage.getItem('letscart_token');
+                            const savedUser = localStorage.getItem('letscart_user');
+                            if (!token || !savedUser) {
+                                toast.error("Please login to access or create your store!");
+                                router.push('/login');
+                            } else {
+                                try {
+                                    const user = JSON.parse(savedUser);
+                                    if (user.role === 'SELLER') {
+                                        router.push('/store');
+                                    } else {
+                                        try {
+                                            const res = await fetch(`/api/store/check-seller?email=${encodeURIComponent(user.email)}`);
+                                            const data = await res.json();
+                                            if (data.success && data.exists) {
+                                                setIsSwitchModalOpen(true);
+                                            } else {
+                                                router.push('/create-store');
+                                            }
+                                        } catch (err) {
+                                            router.push('/create-store');
+                                        }
+                                    }
+                                } catch (err) {
+                                    router.push('/login');
+                                }
+                            }
+                        }
+                    }
+                },
             ]
         },
         {
             title: "CONTACT",
             links: [
-                { text: "aayushkrprasad@gmail.com", path: '/', icon: MailIcon },
-                { text: "+91 70030-35426 ", path: '/', icon: PhoneIcon },
-                { text: "Assam DownTown University  , 781026 ", path: '/', icon: MapPinIcon }
+                { text: "aayushkrprasad@gmail.com", path: 'mailto:aayushkrprasad@gmail.com', icon: MailIcon },
+                { text: "+91 70030-35426 ", path: 'tel:+917003035426', icon: PhoneIcon },
+                { text: "Assam DownTown University  , 781026 ", path: 'https://maps.google.com/?q=Assam+DownTown+University+781026', icon: MapPinIcon }
             ]
         }
     ];
@@ -71,7 +122,16 @@ const Footer = () => {
                                     {section.links.map((link, i) => (
                                         <li key={i} className="flex items-center gap-2">
                                             {link.icon && <link.icon />}
-                                            <Link href={link.path} className="hover:underline transition hover:text-green-600 dark:hover:text-green-400">{link.text}</Link>
+                                            {link.onClick ? (
+                                                <button 
+                                                    onClick={link.onClick} 
+                                                    className="hover:underline transition hover:text-green-600 dark:hover:text-green-400 cursor-pointer text-left font-normal bg-transparent border-0 p-0 text-slate-500 dark:text-slate-400"
+                                                >
+                                                    {link.text}
+                                                </button>
+                                            ) : (
+                                                <Link href={link.path} className="hover:underline transition hover:text-green-600 dark:hover:text-green-400">{link.text}</Link>
+                                            )}
                                         </li>
                                     ))}
                                 </ul>
@@ -83,6 +143,101 @@ const Footer = () => {
                     Copyright 2026 © LetsCart All Right Reserved.
                 </p>
             </div>
+
+            {/* Privacy Policy Modal */}
+            {isPrivacyOpen && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-md transition-all duration-300">
+                    <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl w-full max-w-2xl max-h-[80vh] overflow-hidden shadow-2xl flex flex-col transform transition-all duration-300 scale-100">
+                        {/* Modal Header */}
+                        <div className="flex items-center justify-between px-8 py-5 border-b border-slate-100 dark:border-slate-850">
+                            <h2 className="text-xl font-bold text-slate-800 dark:text-slate-100">Privacy Policy & Terms</h2>
+                            <button 
+                                onClick={() => setIsPrivacyOpen(false)}
+                                className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 size-8 flex items-center justify-center rounded-full transition cursor-pointer font-bold"
+                            >
+                                ✕
+                            </button>
+                        </div>
+                        {/* Modal Content */}
+                        <div className="p-8 overflow-y-auto space-y-5 text-sm text-slate-600 dark:text-slate-400">
+                            <section className="space-y-2">
+                                <h3 className="font-bold text-slate-800 dark:text-slate-200">1. Introduction</h3>
+                                <p>Welcome to LetsCart. We are committed to protecting your personal information and your right to privacy. If you have any questions or concerns about our policy, please contact us at contact@letscart.com.</p>
+                            </section>
+
+                            <section className="space-y-2">
+                                <h3 className="font-bold text-slate-800 dark:text-slate-200">2. Information We Collect</h3>
+                                <p>We collect personal details that you voluntarily provide when creating accounts, placing orders, or configuring stores. This includes names, emails, billing details, and merchant account credentials (e.g. Stripe Account IDs).</p>
+                            </section>
+
+                            <section className="space-y-2">
+                                <h3 className="font-bold text-slate-800 dark:text-slate-200">3. Multi-Vendor splits & transactions</h3>
+                                <p>Our checkout platform processes split transactions between buyers, vendors, and the main system balance. A platform commission of 10% is held by LetsCart, and the rest is transferred to the seller's verified Stripe connected account.</p>
+                            </section>
+
+                            <section className="space-y-2">
+                                <h3 className="font-bold text-slate-800 dark:text-slate-200">4. User Account Rules</h3>
+                                <p>Users are responsible for keeping account access safe. Sellers must ensure accurate stock updates to prevent simultaneous order conflicts. Over-selling attempts are blocked dynamically.</p>
+                            </section>
+                        </div>
+                        {/* Modal Footer */}
+                        <div className="px-8 py-4 bg-slate-50 dark:bg-slate-900/60 border-t border-slate-100 dark:border-slate-850 flex justify-end">
+                            <button 
+                                onClick={() => setIsPrivacyOpen(false)}
+                                className="px-6 py-2 bg-green-600 hover:bg-green-700 text-white font-semibold text-xs rounded-xl shadow-sm transition cursor-pointer"
+                            >
+                                Close & Accept
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Switch Role Recommendation Modal */}
+            {isSwitchModalOpen && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-md transition-all duration-300 animate-fade-in">
+                    <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl w-full max-w-md overflow-hidden shadow-2xl flex flex-col transform transition-all duration-300 scale-100">
+                        {/* Header */}
+                        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 dark:border-slate-850">
+                            <h2 className="text-md font-bold text-slate-800 dark:text-slate-100">Seller Profile Found! 🔄</h2>
+                            <button 
+                                onClick={() => setIsSwitchModalOpen(false)}
+                                className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 size-7 flex items-center justify-center rounded-full transition cursor-pointer font-bold text-sm"
+                            >
+                                ✕
+                            </button>
+                        </div>
+                        {/* Body */}
+                        <div className="p-6 text-center space-y-4">
+                            <div className="mx-auto w-12 h-12 bg-green-100 dark:bg-green-950/30 text-green-600 rounded-full flex items-center justify-center text-xl">
+                                🔄
+                            </div>
+                            <h3 className="text-sm font-bold text-slate-800 dark:text-slate-200">You already have a Seller account!</h3>
+                            <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
+                                A seller account under your email is already registered in our database. You do not need to onboard a new store. Just switch your active role to **Seller** in 1-click using the profile avatar menu in the top navigation bar!
+                            </p>
+                        </div>
+                        {/* Footer */}
+                        <div className="px-6 py-4 bg-slate-50 dark:bg-slate-900/60 border-t border-slate-100 dark:border-slate-850 flex justify-center gap-3">
+                            <button 
+                                onClick={() => setIsSwitchModalOpen(false)}
+                                className="px-4 py-2 bg-slate-200 hover:bg-slate-300 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-semibold text-xs rounded-xl transition cursor-pointer"
+                            >
+                                Keep Browsing
+                            </button>
+                            <button 
+                                onClick={() => {
+                                    setIsSwitchModalOpen(false);
+                                    toast.success("Use the top-right profile dropdown to switch role instantly! 🔄");
+                                }}
+                                className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white font-semibold text-xs rounded-xl shadow-sm transition cursor-pointer"
+                            >
+                                Got it
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </footer>
     );
 };
